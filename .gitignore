@@ -8,3 +8,5 @@
 *.sln
 *.sw?
 .worktrees/
+
+docs/
