@@ -7,6 +7,7 @@ import { ticketRouter } from './routes/ticket';
 import { logsRouter } from './routes/logs';
 import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
+import { secureHeaders } from 'hono/secure-headers';
 
 type Bindings = {
   HYPERDRIVE: any;
@@ -16,8 +17,20 @@ type Bindings = {
 const app = new Hono<{ Bindings: Bindings, Variables: { db: any } }>();
 
 // Global Middleware
+app.use('*', secureHeaders());
 app.use('*', logger());
-app.use('*', cors());
+app.use('*', cors({
+  origin: (origin) => {
+    // Restrict to production domains only. Localhost is not allowed for security reasons.
+    // Local development should use Vite's proxy instead of relying on CORS.
+    if (origin && (origin.endsWith('biru-langit.com') || origin.endsWith('pages.dev'))) {
+      return origin;
+    }
+    // Default fallback to strict domain (or null to block)
+    return 'https://insight.biru-langit.com';
+  },
+  credentials: true,
+}));
 
 // Routes that don't need DB
 app.route('/api/logs', logsRouter);
@@ -57,7 +70,7 @@ app.route('/api/iot', iotRouter);
 app.route('/api/auth', authRouter);
 app.route('/api/tickets', ticketRouter);
 
-app.get('/', (c) => {
+app.get('/api', (c) => {
   return c.json({ message: 'Welcome to Biru Langit API' });
 });
 

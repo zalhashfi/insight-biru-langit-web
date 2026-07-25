@@ -1,6 +1,13 @@
 import { Hono } from 'hono';
 import { eq, desc } from 'drizzle-orm';
 import { station, rawSensorLog, telemetryData, firmwareVersion } from '../db/schema';
+import { z } from 'zod';
+
+const payloadSchema = z.object({
+  pm25: z.number().min(0).max(1000).optional(),
+  humidity: z.number().min(0).max(100).optional(),
+  temperature: z.number().min(-50).max(100).optional()
+}).catchall(z.any());
 
 export const iotRouter = new Hono<{ Variables: { db: any } }>();
 
@@ -22,8 +29,12 @@ iotRouter.post('/ingest', async (c) => {
   
   let payload: any;
   try {
-    payload = await c.req.json();
+    const rawJson = await c.req.json();
+    payload = payloadSchema.parse(rawJson);
   } catch (e) {
+    if (e instanceof z.ZodError) {
+      return c.json({ error: 'Invalid payload format', details: e.errors }, 400);
+    }
     return c.json({ error: 'Invalid JSON payload' }, 400);
   }
 

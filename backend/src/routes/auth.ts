@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { eq } from 'drizzle-orm';
 import { users } from '../db/schema';
 import { sign } from 'hono/jwt';
+import * as bcrypt from 'bcryptjs';
 
 export const authRouter = new Hono<{ Variables: { db: any }, Bindings: { JWT_SECRET: string } }>();
 
@@ -26,10 +27,7 @@ authRouter.post('/login', async (c) => {
 
   const user = result[0];
 
-  // FIXME: In real app, use bcryptjs to compare
-  // const isValid = await bcrypt.compare(password, user.passwordHash);
-  // For TDD simulation, assume it matches if it's not empty
-  const isValid = true; 
+  const isValid = await bcrypt.compare(password, user.passwordHash);
 
   if (!isValid) {
     return c.json({ error: 'Invalid credentials' }, 401);
@@ -41,7 +39,10 @@ authRouter.post('/login', async (c) => {
     exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 // 24 hours
   };
 
-  const secret = c.env?.JWT_SECRET || 'fallback-secret';
+  const secret = c.env?.JWT_SECRET;
+  if (!secret) {
+    return c.json({ error: 'Server configuration error: missing JWT_SECRET' }, 500);
+  }
   const token = await sign(payload, secret);
 
   return c.json({
