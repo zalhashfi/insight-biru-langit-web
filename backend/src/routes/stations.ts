@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { stations } from '../db/schema';
+import { station } from '../db/schema';
 import { eq } from 'drizzle-orm';
 
 export const stationsRouter = new Hono<{ Variables: { db: any, jwtPayload: any } }>();
@@ -7,7 +7,7 @@ export const stationsRouter = new Hono<{ Variables: { db: any, jwtPayload: any }
 stationsRouter.get('/', async (c) => {
   const db = c.get('db');
   
-  const allStations = await db.select().from(stations);
+  const allStations = await db.select().from(station);
   
   return c.json({ stations: allStations }, 200);
 });
@@ -34,7 +34,7 @@ stationsRouter.post('/', async (c) => {
   }
 
   try {
-    await db.insert(stations).values({
+    await db.insert(station).values({
       uuid,
       name,
       type,
