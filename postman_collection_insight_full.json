@@ -1,0 +1,152 @@
+{
+  "info": {
+    "name": "Insight-web Full API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Base URL (Root)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "https://insight.biru-langit.com/",
+          "protocol": "https",
+          "host": ["insight", "biru-langit", "com"],
+          "path": [""]
+        }
+      }
+    },
+    {
+      "name": "IoT",
+      "item": [
+        {
+          "name": "Ingest Telemetry Data",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "x-api-key", "value": "e075af1b-942f-425d-aa6e-6927eaac5070", "type": "text" },
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stationId\": \"LCS-512\",\n  \"temperature\": 25.4,\n  \"humidity\": 60.5,\n  \"pm25\": 12.3,\n  \"co2\": 400.1,\n  \"no2\": 15.2\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "https://insight.biru-langit.com/api/iot/ingest",
+              "protocol": "https",
+              "host": ["insight", "biru-langit", "com"],
+              "path": ["api", "iot", "ingest"]
+            }
+          }
+        },
+        {
+          "name": "Check OTA Update",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-api-key", "value": "e075af1b-942f-425d-aa6e-6927eaac5070", "type": "text" }
+            ],
+            "url": {
+              "raw": "https://insight.biru-langit.com/api/iot/ota?current_version=v1.0.0",
+              "protocol": "https",
+              "host": ["insight", "biru-langit", "com"],
+              "path": ["api", "iot", "ota"],
+              "query": [
+                { "key": "current_version", "value": "v1.0.0" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"password123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "https://insight.biru-langit.com/api/auth/login",
+              "protocol": "https",
+              "host": ["insight", "biru-langit", "com"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tickets (Maintenance)",
+      "item": [
+        {
+          "name": "Get Tickets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://insight.biru-langit.com/api/tickets",
+              "protocol": "https",
+              "host": ["insight", "biru-langit", "com"],
+              "path": ["api", "tickets"]
+            }
+          }
+        },
+        {
+          "name": "Update Ticket",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"resolved\",\n  \"actionTaken\": \"Replaced sensor module\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "https://insight.biru-langit.com/api/tickets/1",
+              "protocol": "https",
+              "host": ["insight", "biru-langit", "com"],
+              "path": ["api", "tickets", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Logs",
+      "item": [
+        {
+          "name": "Send Frontend Log",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json", "type": "text" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"level\": \"error\",\n  \"message\": \"Failed to render dashboard chart\",\n  \"data\": {\"component\": \"PM25Chart\"}\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "https://insight.biru-langit.com/api/logs",
+              "protocol": "https",
+              "host": ["insight", "biru-langit", "com"],
+              "path": ["api", "logs"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

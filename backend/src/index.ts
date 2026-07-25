@@ -8,7 +8,7 @@ import { logsRouter } from './routes/logs';
 import { logger } from 'hono/logger';
 
 type Bindings = {
-  DATABASE_URL: string;
+  HYPERDRIVE: any;
   JWT_SECRET: string;
 }
 
@@ -22,10 +22,15 @@ app.route('/api/logs', logsRouter);
 
 // Database middleware
 app.use('*', async (c, next) => {
-  if (c.env?.DATABASE_URL && !c.get('db')) {
-    const connection = await mysql.createConnection(c.env.DATABASE_URL);
-    const db = drizzle(connection);
-    c.set('db', db);
+  if (c.env?.HYPERDRIVE && !c.get('db')) {
+    try {
+      const connection = await mysql.createConnection(c.env.HYPERDRIVE.connectionString);
+      const db = drizzle(connection);
+      c.set('db', db);
+    } catch (error: any) {
+      console.error('Database connection error:', error.message);
+      return c.json({ error: 'Database connection failed', details: error.message }, 500);
+    }
   }
   await next();
 });
