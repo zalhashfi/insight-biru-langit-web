@@ -1,68 +1,109 @@
-import { mysqlTable, varchar, int, timestamp, text, json, boolean, mysqlEnum } from 'drizzle-orm/mysql-core';
+import { mysqlTable, varchar, int, bigint, timestamp, text, json, boolean, mysqlEnum, float } from 'drizzle-orm/mysql-core';
+import { sql } from 'drizzle-orm';
+
+// ==========================================
+// A. USER MANAGEMENT & WEB PLATFORM
+// ==========================================
 
 export const users = mysqlTable('users', {
-  id: varchar('id', { length: 36 }).primaryKey(), // UUID
-  username: varchar('username', { length: 255 }).notNull().unique(),
+  id: int('id').primaryKey().autoincrement(),
+  email: varchar('email', { length: 255 }).unique().notNull(),
   passwordHash: varchar('password_hash', { length: 255 }).notNull(),
-  role: mysqlEnum('role', ['admin', 'engineer', 'user', 'non-login']).default('non-login').notNull(),
+  fullName: varchar('full_name', { length: 255 }).notNull(),
+  role: mysqlEnum('role', ['admin', 'engineer', 'user']).default('user').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull()
+  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
+  deletedAt: timestamp('deleted_at')
 });
 
-export const station = mysqlTable('station', {
-  id: varchar('id', { length: 36 }).primaryKey(),
-  name: varchar('name', { length: 255 }).notNull(),
-  location: varchar('location', { length: 255 }),
-  apiKey: varchar('api_key', { length: 255 }).notNull().unique(),
-  macAddress: varchar('mac_address', { length: 17 }).unique(),
-  firmwareVersion: varchar('firmware_version', { length: 50 }),
+export const maintenanceTickets = mysqlTable('maintenance_tickets', {
+  id: bigint('id', { mode: 'number' }).primaryKey().autoincrement(),
+  stationUuid: varchar('station_uuid', { length: 36 }).notNull().references(() => station.uuid),
+  reportedByUserId: int('reported_by_user_id').notNull().references(() => users.id),
+  assignedToEngineerId: int('assigned_to_engineer_id').references(() => users.id),
+  issueTitle: varchar('issue_title', { length: 255 }).notNull(),
+  issueDescription: text('issue_description').notNull(),
+  status: mysqlEnum('status', ['open', 'in_progress', 'resolved']).default('open').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull()
-});
-
-export const rawSensorLog = mysqlTable('raw_sensor_log', {
-  id: int('id').primaryKey().autoincrement(),
-  stationIdRaw: varchar('station_id_raw', { length: 255 }), // Can be string identifier from device before validation
-  pm25: int('pm25'),
-  humidity: int('humidity'),
-  temperature: int('temperature'),
-  rawPayload: json('raw_payload'),
-  status: mysqlEnum('status', ['pending', 'processed', 'failed']).default('pending').notNull(),
-  timestamp: timestamp('timestamp').defaultNow().notNull()
-});
-
-export const telemetryData = mysqlTable('telemetry_data', {
-  id: int('id').primaryKey().autoincrement(),
-  stationId: varchar('station_id', { length: 36 }).references(() => station.id),
-  pm25: int('pm25'),
-  humidity: int('humidity'),
-  temperature: int('temperature'),
-  isValid: boolean('is_valid').default(true),
-  recordedAt: timestamp('recorded_at').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull()
-});
-
-export const firmwareVersion = mysqlTable('firmware_version', {
-  id: int('id').primaryKey().autoincrement(),
-  versionTag: varchar('version_tag', { length: 50 }).notNull().unique(),
-  githubUrl: varchar('github_url', { length: 500 }).notNull(),
-  releaseNotes: text('release_notes'),
-  createdAt: timestamp('created_at').defaultNow().notNull()
-});
-
-export const maintenanceTicket = mysqlTable('maintenance_ticket', {
-  id: int('id').primaryKey().autoincrement(),
-  stationId: varchar('station_id', { length: 36 }).references(() => station.id).notNull(),
-  engineerId: varchar('engineer_id', { length: 36 }).references(() => users.id),
-  status: mysqlEnum('status', ['open', 'in_progress', 'resolved', 'closed']).default('open').notNull(),
-  description: text('description').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull()
+  resolvedAt: timestamp('resolved_at')
 });
 
 export const maintenanceLog = mysqlTable('maintenance_log', {
-  id: int('id').primaryKey().autoincrement(),
-  ticketId: int('ticket_id').references(() => maintenanceTicket.id).notNull(),
+  id: bigint('id', { mode: 'number' }).primaryKey().autoincrement(),
+  ticketId: bigint('ticket_id', { mode: 'number' }).notNull().references(() => maintenanceTickets.id),
+  engineerId: int('engineer_id').notNull().references(() => users.id),
   actionTaken: text('action_taken').notNull(),
-  timestamp: timestamp('timestamp').defaultNow().notNull()
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+// ==========================================
+// B. IOT MASTER TABLES & OTA
+// ==========================================
+
+export const station = mysqlTable('station', {
+  uuid: varchar('uuid', { length: 36 }).primaryKey(),
+  name: varchar('name', { length: 100 }).notNull(),
+  projectName: varchar('project_name', { length: 100 }).notNull(),
+  macAddress: varchar('mac_address', { length: 20 }),
+  currentVersion: varchar('current_version', { length: 20 }),
+  type: mysqlEnum('type', ['aqms', 'soc']).notNull(), // Added based on implementation plan for ingest routing
+  lastSeenAt: timestamp('last_seen_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),
+  deletedAt: timestamp('deleted_at')
+});
+
+export const firmwareRelease = mysqlTable('firmware_release', {
+  id: int('id').primaryKey().autoincrement(),
+  projectName: varchar('project_name', { length: 100 }).notNull(),
+  version: varchar('version', { length: 20 }).notNull(),
+  binFileUrl: varchar('bin_file_url', { length: 255 }).notNull(),
+  releaseNotes: text('release_notes'),
+  isLatest: boolean('is_latest').default(false).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+// ==========================================
+// C. COLD PATH (Penyimpanan Raw & Log)
+// ==========================================
+
+export const rawSensorLog = mysqlTable('raw_sensor_log', {
+  id: bigint('id', { mode: 'number' }).primaryKey().autoincrement(),
+  stationUuid: varchar('station_uuid', { length: 36 }).notNull(),
+  firmwareVersion: varchar('firmware_version', { length: 20 }),
+  dataPayload: json('data_payload').notNull(),
+  receivedAt: timestamp('received_at').defaultNow().notNull()
+});
+
+// ==========================================
+// D. HOT PATH (Analitik Dashboard)
+// ==========================================
+
+export const dataAqms = mysqlTable('data_aqms', {
+  id: bigint('id', { mode: 'number' }).primaryKey().autoincrement(),
+  stationUuid: varchar('station_uuid', { length: 36 }).notNull().references(() => station.uuid),
+  pm25: float('pm25'),
+  no2: float('no2'),
+  co: float('co'),
+  temp: float('temp'),
+  hum: float('hum'),
+  ws: float('ws'),
+  wd: float('wd'),
+  measuredAt: timestamp('measured_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
+});
+
+export const dataSoc = mysqlTable('data_soc', {
+  id: bigint('id', { mode: 'number' }).primaryKey().autoincrement(),
+  stationUuid: varchar('station_uuid', { length: 36 }).notNull().references(() => station.uuid),
+  ph: float('ph'),
+  no2: float('no2'),
+  ec: float('ec'),
+  temp: float('temp'),
+  hum: float('hum'),
+  n: float('n'),
+  p: float('p'),
+  k: float('k'),
+  measuredAt: timestamp('measured_at').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull()
 });

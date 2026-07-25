@@ -15,12 +15,12 @@ authRouter.post('/login', async (c) => {
     return c.json({ error: 'Invalid JSON' }, 400);
   }
 
-  const { username, password } = body;
-  if (!username || !password) {
-    return c.json({ error: 'Username and password are required' }, 400);
+  const { email, password } = body;
+  if (!email || !password) {
+    return c.json({ error: 'Email and password are required' }, 400);
   }
 
-  const result = await db.select().from(users).where(eq(users.username, username));
+  const result = await db.select().from(users).where(eq(users.email, email));
   if (result.length === 0) {
     return c.json({ error: 'Invalid credentials' }, 401);
   }
@@ -49,7 +49,8 @@ authRouter.post('/login', async (c) => {
     token,
     user: {
       id: user.id,
-      username: user.username,
+      email: user.email,
+      fullName: user.fullName,
       role: user.role
     }
   }, 200);

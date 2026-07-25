@@ -9,7 +9,11 @@ const mockDb = {
   })),
   select: vi.fn(() => ({
     from: vi.fn(() => ({
-      where: vi.fn().mockResolvedValue([{ id: 'station-123', apiKey: 'valid-api-key' }])
+      where: vi.fn().mockImplementation((condition) => {
+        // Return a mock station for testing
+        // Check if condition contains 'valid-api-key-soc' somehow, but we'll just mock based on a global or switch
+        return Promise.resolve([{ uuid: 'station-aqms-123', type: 'aqms' }]);
+      })
     }))
   }))
 };
@@ -28,11 +32,11 @@ describe('IoT Ingestion API', () => {
     vi.clearAllMocks();
   });
 
-  it('should accept valid telemetry data and insert into both raw and hot paths', async () => {
+  it('should accept valid AQMS telemetry data and insert into raw and data_aqms', async () => {
     const payload = {
       pm25: 45,
-      humidity: 60,
-      temperature: 32
+      hum: 60,
+      temp: 32
     };
 
     const res = await app.request('/api/iot/ingest', {
@@ -55,8 +59,8 @@ describe('IoT Ingestion API', () => {
   it('should reject invalid pm25 (e.g., > 1000) for hot path, but still save to raw path', async () => {
     const payload = {
       pm25: 1500, // Invalid PM2.5
-      humidity: 60,
-      temperature: 32
+      hum: 60,
+      temp: 32
     };
 
     const res = await app.request('/api/iot/ingest', {

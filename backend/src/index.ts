@@ -4,6 +4,9 @@ import mysql from 'mysql2/promise';
 import { iotRouter } from './routes/iot';
 import { authRouter } from './routes/auth';
 import { ticketRouter } from './routes/ticket';
+import { usersRouter } from './routes/users';
+import { stationsRouter } from './routes/stations';
+import { dataRouter } from './routes/data';
 import { logsRouter } from './routes/logs';
 import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
@@ -69,6 +72,9 @@ app.onError((err, c) => {
 app.route('/api/iot', iotRouter);
 app.route('/api/auth', authRouter);
 app.route('/api/tickets', ticketRouter);
+app.route('/api/users', usersRouter);
+app.route('/api/stations', stationsRouter);
+app.route('/api/data', dataRouter);
 
 app.get('/api', (c) => {
   return c.json({ message: 'Welcome to Biru Langit API' });

@@ -6,10 +6,15 @@ import { iotRouter } from '../src/routes/iot';
 const mockDb = {
   select: vi.fn(() => ({
     from: vi.fn(() => ({
-      where: vi.fn().mockResolvedValue([{ id: 'station-123', apiKey: 'valid-api-key', firmwareVersion: 'v0.9.0' }]),
-      orderBy: vi.fn(() => ({
-        limit: vi.fn().mockResolvedValue([{ versionTag: 'v1.1.0', githubUrl: 'https://github.com/test/ota.bin' }])
-      }))
+      where: vi.fn().mockReturnValue({
+        orderBy: vi.fn(() => ({
+          limit: vi.fn().mockResolvedValue([{ version: 'v1.1.0', binFileUrl: 'https://github.com/test/ota.bin' }])
+        })),
+        then: function(resolve: any) {
+          // This simulates returning an array when `where()` is awaited directly (for station lookup)
+          resolve([{ uuid: 'station-123', currentVersion: 'v0.9.0', projectName: 'biru-langit' }]);
+        }
+      })
     }))
   })),
   update: vi.fn(() => ({

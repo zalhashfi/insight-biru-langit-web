@@ -6,7 +6,7 @@ import { sign } from 'hono/jwt';
 const mockDb = {
   select: vi.fn(() => ({
     from: vi.fn().mockResolvedValue([
-      { id: 1, stationId: 'st-1', status: 'open', description: 'Sensor mati' }
+      { id: 1, stationUuid: 'st-1', status: 'open', issueTitle: 'Sensor mati' }
     ])
   })),
   update: vi.fn(() => ({
@@ -34,8 +34,8 @@ describe('Ticket API', () => {
     app.use('*', async (c, next) => {
       const auth = c.req.header('Authorization');
       if (auth && auth.startsWith('Bearer ')) {
-        // Mock valid user
-        c.set('jwtPayload', { id: 'user-123', role: 'engineer' });
+        // Mock valid user (ID is number now)
+        c.set('jwtPayload', { id: 1, role: 'engineer' });
       } else {
         return c.json({ error: 'Unauthorized' }, 401);
       }
@@ -45,7 +45,7 @@ describe('Ticket API', () => {
     app.route('/api/tickets', ticketRouter);
     vi.clearAllMocks();
 
-    token = await sign({ id: 'user-123', role: 'engineer' }, 'super-secret');
+    token = await sign({ id: 1, role: 'engineer' }, 'super-secret');
   });
 
   it('should list tickets for authenticated user', async () => {

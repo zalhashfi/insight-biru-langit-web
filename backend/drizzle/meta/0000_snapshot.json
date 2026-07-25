@@ -1,11 +1,236 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "0c8cb522-7284-4cf5-ade3-1c08e35e3fdc",
+  "id": "5a023f2f-f17f-4a2f-bb13-1a7f4e97ad1d",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
-    "firmware_version": {
-      "name": "firmware_version",
+    "data_aqms": {
+      "name": "data_aqms",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "station_uuid": {
+          "name": "station_uuid",
+          "type": "varchar(36)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "pm25": {
+          "name": "pm25",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "no2": {
+          "name": "no2",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "co": {
+          "name": "co",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "temp": {
+          "name": "temp",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "hum": {
+          "name": "hum",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "ws": {
+          "name": "ws",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "wd": {
+          "name": "wd",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "measured_at": {
+          "name": "measured_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(now())"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "data_aqms_station_uuid_station_uuid_fk": {
+          "name": "data_aqms_station_uuid_station_uuid_fk",
+          "tableFrom": "data_aqms",
+          "tableTo": "station",
+          "columnsFrom": [
+            "station_uuid"
+          ],
+          "columnsTo": [
+            "uuid"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "data_aqms_id": {
+          "name": "data_aqms_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "data_soc": {
+      "name": "data_soc",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "station_uuid": {
+          "name": "station_uuid",
+          "type": "varchar(36)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ph": {
+          "name": "ph",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "no2": {
+          "name": "no2",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "ec": {
+          "name": "ec",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "temp": {
+          "name": "temp",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "hum": {
+          "name": "hum",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "n": {
+          "name": "n",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "p": {
+          "name": "p",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "k": {
+          "name": "k",
+          "type": "float",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "measured_at": {
+          "name": "measured_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "(now())"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "data_soc_station_uuid_station_uuid_fk": {
+          "name": "data_soc_station_uuid_station_uuid_fk",
+          "tableFrom": "data_soc",
+          "tableTo": "station",
+          "columnsFrom": [
+            "station_uuid"
+          ],
+          "columnsTo": [
+            "uuid"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "data_soc_id": {
+          "name": "data_soc_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "firmware_release": {
+      "name": "firmware_release",
       "columns": {
         "id": {
           "name": "id",
@@ -14,16 +239,23 @@
           "notNull": true,
           "autoincrement": true
         },
-        "version_tag": {
-          "name": "version_tag",
-          "type": "varchar(50)",
+        "project_name": {
+          "name": "project_name",
+          "type": "varchar(100)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "github_url": {
-          "name": "github_url",
-          "type": "varchar(500)",
+        "version": {
+          "name": "version",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "bin_file_url": {
+          "name": "bin_file_url",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
@@ -34,6 +266,14 @@
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
+        },
+        "is_latest": {
+          "name": "is_latest",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
         },
         "created_at": {
           "name": "created_at",
@@ -47,21 +287,14 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "firmware_version_id": {
-          "name": "firmware_version_id",
+        "firmware_release_id": {
+          "name": "firmware_release_id",
           "columns": [
             "id"
           ]
         }
       },
-      "uniqueConstraints": {
-        "firmware_version_version_tag_unique": {
-          "name": "firmware_version_version_tag_unique",
-          "columns": [
-            "version_tag"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "checkConstraint": {}
     },
     "maintenance_log": {
@@ -69,13 +302,20 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "int",
+          "type": "bigint",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": true
         },
         "ticket_id": {
           "name": "ticket_id",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "engineer_id": {
+          "name": "engineer_id",
           "type": "int",
           "primaryKey": false,
           "notNull": true,
@@ -88,8 +328,8 @@
           "notNull": true,
           "autoincrement": false
         },
-        "timestamp": {
-          "name": "timestamp",
+        "created_at": {
+          "name": "created_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
@@ -99,12 +339,25 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "maintenance_log_ticket_id_maintenance_ticket_id_fk": {
-          "name": "maintenance_log_ticket_id_maintenance_ticket_id_fk",
+        "maintenance_log_ticket_id_maintenance_tickets_id_fk": {
+          "name": "maintenance_log_ticket_id_maintenance_tickets_id_fk",
           "tableFrom": "maintenance_log",
-          "tableTo": "maintenance_ticket",
+          "tableTo": "maintenance_tickets",
           "columnsFrom": [
             "ticket_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "maintenance_log_engineer_id_users_id_fk": {
+          "name": "maintenance_log_engineer_id_users_id_fk",
+          "tableFrom": "maintenance_log",
+          "tableTo": "users",
+          "columnsFrom": [
+            "engineer_id"
           ],
           "columnsTo": [
             "id"
@@ -124,44 +377,58 @@
       "uniqueConstraints": {},
       "checkConstraint": {}
     },
-    "maintenance_ticket": {
-      "name": "maintenance_ticket",
+    "maintenance_tickets": {
+      "name": "maintenance_tickets",
       "columns": {
         "id": {
           "name": "id",
-          "type": "int",
+          "type": "bigint",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": true
         },
-        "station_id": {
-          "name": "station_id",
+        "station_uuid": {
+          "name": "station_uuid",
           "type": "varchar(36)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "engineer_id": {
-          "name": "engineer_id",
-          "type": "varchar(36)",
+        "reported_by_user_id": {
+          "name": "reported_by_user_id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "assigned_to_engineer_id": {
+          "name": "assigned_to_engineer_id",
+          "type": "int",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "status": {
-          "name": "status",
-          "type": "enum('open','in_progress','resolved','closed')",
+        "issue_title": {
+          "name": "issue_title",
+          "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "'open'"
+          "autoincrement": false
         },
-        "description": {
-          "name": "description",
+        "issue_description": {
+          "name": "issue_description",
           "type": "text",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "enum('open','in_progress','resolved')",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'open'"
         },
         "created_at": {
           "name": "created_at",
@@ -171,24 +438,35 @@
           "autoincrement": false,
           "default": "(now())"
         },
-        "updated_at": {
-          "name": "updated_at",
+        "resolved_at": {
+          "name": "resolved_at",
           "type": "timestamp",
           "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "onUpdate": true,
-          "default": "(now())"
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {},
       "foreignKeys": {
-        "maintenance_ticket_station_id_station_id_fk": {
-          "name": "maintenance_ticket_station_id_station_id_fk",
-          "tableFrom": "maintenance_ticket",
+        "maintenance_tickets_station_uuid_station_uuid_fk": {
+          "name": "maintenance_tickets_station_uuid_station_uuid_fk",
+          "tableFrom": "maintenance_tickets",
           "tableTo": "station",
           "columnsFrom": [
-            "station_id"
+            "station_uuid"
+          ],
+          "columnsTo": [
+            "uuid"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "maintenance_tickets_reported_by_user_id_users_id_fk": {
+          "name": "maintenance_tickets_reported_by_user_id_users_id_fk",
+          "tableFrom": "maintenance_tickets",
+          "tableTo": "users",
+          "columnsFrom": [
+            "reported_by_user_id"
           ],
           "columnsTo": [
             "id"
@@ -196,12 +474,12 @@
           "onDelete": "no action",
           "onUpdate": "no action"
         },
-        "maintenance_ticket_engineer_id_users_id_fk": {
-          "name": "maintenance_ticket_engineer_id_users_id_fk",
-          "tableFrom": "maintenance_ticket",
+        "maintenance_tickets_assigned_to_engineer_id_users_id_fk": {
+          "name": "maintenance_tickets_assigned_to_engineer_id_users_id_fk",
+          "tableFrom": "maintenance_tickets",
           "tableTo": "users",
           "columnsFrom": [
-            "engineer_id"
+            "assigned_to_engineer_id"
           ],
           "columnsTo": [
             "id"
@@ -211,8 +489,8 @@
         }
       },
       "compositePrimaryKeys": {
-        "maintenance_ticket_id": {
-          "name": "maintenance_ticket_id",
+        "maintenance_tickets_id": {
+          "name": "maintenance_tickets_id",
           "columns": [
             "id"
           ]
@@ -226,56 +504,34 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "int",
+          "type": "bigint",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": true
         },
-        "station_id_raw": {
-          "name": "station_id_raw",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "pm25": {
-          "name": "pm25",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "humidity": {
-          "name": "humidity",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "temperature": {
-          "name": "temperature",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "raw_payload": {
-          "name": "raw_payload",
-          "type": "json",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "status": {
-          "name": "status",
-          "type": "enum('pending','processed','failed')",
+        "station_uuid": {
+          "name": "station_uuid",
+          "type": "varchar(36)",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false,
-          "default": "'pending'"
+          "autoincrement": false
         },
-        "timestamp": {
-          "name": "timestamp",
+        "firmware_version": {
+          "name": "firmware_version",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "data_payload": {
+          "name": "data_payload",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "received_at": {
+          "name": "received_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
@@ -299,8 +555,8 @@
     "station": {
       "name": "station",
       "columns": {
-        "id": {
-          "name": "id",
+        "uuid": {
+          "name": "uuid",
           "type": "varchar(36)",
           "primaryKey": false,
           "notNull": true,
@@ -308,35 +564,42 @@
         },
         "name": {
           "name": "name",
-          "type": "varchar(255)",
+          "type": "varchar(100)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
-        "location": {
-          "name": "location",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "api_key": {
-          "name": "api_key",
-          "type": "varchar(255)",
+        "project_name": {
+          "name": "project_name",
+          "type": "varchar(100)",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
         },
         "mac_address": {
           "name": "mac_address",
-          "type": "varchar(17)",
+          "type": "varchar(20)",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
         },
-        "firmware_version": {
-          "name": "firmware_version",
-          "type": "varchar(50)",
+        "current_version": {
+          "name": "current_version",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "enum('aqms','soc')",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "last_seen_at": {
+          "name": "last_seen_at",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": false,
           "autoincrement": false
@@ -357,117 +620,22 @@
           "autoincrement": false,
           "onUpdate": true,
           "default": "(now())"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "station_id": {
-          "name": "station_id",
+        "station_uuid": {
+          "name": "station_uuid",
           "columns": [
-            "id"
-          ]
-        }
-      },
-      "uniqueConstraints": {
-        "station_api_key_unique": {
-          "name": "station_api_key_unique",
-          "columns": [
-            "api_key"
-          ]
-        },
-        "station_mac_address_unique": {
-          "name": "station_mac_address_unique",
-          "columns": [
-            "mac_address"
-          ]
-        }
-      },
-      "checkConstraint": {}
-    },
-    "telemetry_data": {
-      "name": "telemetry_data",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": true
-        },
-        "station_id": {
-          "name": "station_id",
-          "type": "varchar(36)",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "pm25": {
-          "name": "pm25",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "humidity": {
-          "name": "humidity",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "temperature": {
-          "name": "temperature",
-          "type": "int",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "is_valid": {
-          "name": "is_valid",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false,
-          "default": true
-        },
-        "recorded_at": {
-          "name": "recorded_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": "(now())"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "telemetry_data_station_id_station_id_fk": {
-          "name": "telemetry_data_station_id_station_id_fk",
-          "tableFrom": "telemetry_data",
-          "tableTo": "station",
-          "columnsFrom": [
-            "station_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "telemetry_data_id": {
-          "name": "telemetry_data_id",
-          "columns": [
-            "id"
+            "uuid"
           ]
         }
       },
@@ -479,13 +647,13 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "varchar(36)",
+          "type": "int",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
+          "autoincrement": true
         },
-        "username": {
-          "name": "username",
+        "email": {
+          "name": "email",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
@@ -498,13 +666,20 @@
           "notNull": true,
           "autoincrement": false
         },
+        "full_name": {
+          "name": "full_name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "role": {
           "name": "role",
-          "type": "enum('admin','engineer','user','non-login')",
+          "type": "enum('admin','engineer','user')",
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false,
-          "default": "'non-login'"
+          "default": "'user'"
         },
         "created_at": {
           "name": "created_at",
@@ -522,6 +697,13 @@
           "autoincrement": false,
           "onUpdate": true,
           "default": "(now())"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
         }
       },
       "indexes": {},
@@ -535,10 +717,10 @@
         }
       },
       "uniqueConstraints": {
-        "users_username_unique": {
-          "name": "users_username_unique",
+        "users_email_unique": {
+          "name": "users_email_unique",
           "columns": [
-            "username"
+            "email"
           ]
         }
       },
