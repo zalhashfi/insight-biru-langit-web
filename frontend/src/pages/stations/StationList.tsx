@@ -10,6 +10,8 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddStationDialog } from './AddStationDialog';
 
+import { logToCloudflare } from '@/utils/logger';
+
 type Station = {
   id: string;
   name: string;
@@ -19,7 +21,10 @@ type Station = {
 
 async function fetchStations(): Promise<Station[]> {
   const res = await fetch('/api/stations');
-  if (!res.ok) throw new Error('Failed to fetch stations');
+  if (!res.ok) {
+    logToCloudflare('error', 'Failed to fetch stations', { status: res.status });
+    throw new Error('Failed to fetch stations');
+  }
   return res.json();
 }
 

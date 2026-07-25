@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { logToCloudflare } from '@/utils/logger';
 
 export function AddStationDialog() {
   const [open, setOpen] = useState(false);
@@ -26,7 +27,10 @@ export function AddStationDialog() {
             Masukkan detail stasiun alat baru. API Key akan dibuat otomatis di server.
           </DialogDescription>
         </DialogHeader>
-        <form className="grid gap-4 py-4" onSubmit={(e) => e.preventDefault()}>
+        <form className="grid gap-4 py-4" onSubmit={(e) => {
+          e.preventDefault();
+          logToCloudflare('info', 'User attempted to add a station', { action: 'add_station' });
+        }}>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">
               Nama
