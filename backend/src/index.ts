@@ -4,6 +4,8 @@ import mysql from 'mysql2/promise';
 import { iotRouter } from './routes/iot';
 import { authRouter } from './routes/auth';
 import { ticketRouter } from './routes/ticket';
+import { logsRouter } from './routes/logs';
+import { logger } from 'hono/logger';
 
 type Bindings = {
   DATABASE_URL: string;
@@ -12,9 +14,15 @@ type Bindings = {
 
 const app = new Hono<{ Bindings: Bindings, Variables: { db: any } }>();
 
+// Global Middleware
+app.use('*', logger());
+
+// Routes that don't need DB
+app.route('/api/logs', logsRouter);
+
 // Database middleware
 app.use('*', async (c, next) => {
-  if (!c.get('db')) {
+  if (c.env?.DATABASE_URL && !c.get('db')) {
     const connection = await mysql.createConnection(c.env.DATABASE_URL);
     const db = drizzle(connection);
     c.set('db', db);
