@@ -6,6 +6,7 @@ import { authRouter } from './routes/auth';
 import { ticketRouter } from './routes/ticket';
 import { logsRouter } from './routes/logs';
 import { logger } from 'hono/logger';
+import { cors } from 'hono/cors';
 
 type Bindings = {
   HYPERDRIVE: any;
@@ -16,6 +17,7 @@ const app = new Hono<{ Bindings: Bindings, Variables: { db: any } }>();
 
 // Global Middleware
 app.use('*', logger());
+app.use('*', cors());
 
 // Routes that don't need DB
 app.route('/api/logs', logsRouter);
@@ -24,7 +26,10 @@ app.route('/api/logs', logsRouter);
 app.use('*', async (c, next) => {
   if (c.env?.HYPERDRIVE && !c.get('db')) {
     try {
-      const connection = await mysql.createConnection(c.env.HYPERDRIVE.connectionString);
+      const connection = await mysql.createConnection({
+        uri: c.env.HYPERDRIVE.connectionString,
+        disableEval: true
+      });
       const db = drizzle(connection);
       c.set('db', db);
     } catch (error: any) {
@@ -33,6 +38,18 @@ app.use('*', async (c, next) => {
     }
   }
   await next();
+});
+
+// Global error handler
+app.onError((err, c) => {
+  console.error('Unhandled Exception:', err);
+  return c.json({
+    error: 'Internal Server Error',
+    message: err.message,
+    cause: err.cause ? String(err.cause) : null,
+    stack: err.stack,
+    details: JSON.stringify(err, Object.getOwnPropertyNames(err))
+  }, 500);
 });
 
 // Routes
