@@ -17,8 +17,8 @@ export function AddStationDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>Tambah Alat</Button>
+      <DialogTrigger render={<Button />}>
+        Tambah Alat
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
