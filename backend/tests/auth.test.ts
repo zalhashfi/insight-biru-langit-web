@@ -10,7 +10,7 @@ const mockDb = {
         return Promise.resolve([{
           id: 1,
           email: 'admin@biru-langit.com',
-          passwordHash: '$2a$10$w/XlZ1x/W66C.U00dC9nveK1wZ1j8B1C8yv/2j.Fv.XyZ8a.W6.O.', // bcrypt hash for 'password123'
+          passwordHash: '$2b$10$V78AMY1crqCPtJz5a/iPduKU9E.6r6ddZpZs7f6m51Rc.uCZWDE/i', // bcrypt hash for 'password123'
           fullName: 'Admin Name',
           role: 'admin'
         }]);

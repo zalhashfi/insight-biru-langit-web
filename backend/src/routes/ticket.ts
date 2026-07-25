@@ -6,12 +6,24 @@ export const ticketRouter = new Hono<{ Variables: { db: any, jwtPayload: any } }
 
 ticketRouter.get('/', async (c) => {
   const db = c.get('db');
+  const payload = c.get('jwtPayload');
+  
+  if (!payload || (payload.role !== 'admin' && payload.role !== 'engineer')) {
+    return c.json({ error: 'Forbidden' }, 403);
+  }
+
   const tickets = await db.select().from(maintenanceTickets);
   return c.json({ tickets }, 200);
 });
 
 ticketRouter.post('/', async (c) => {
   const db = c.get('db');
+  const payload = c.get('jwtPayload');
+  
+  if (!payload) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+  
   let body;
   try {
     body = await c.req.json();
@@ -19,15 +31,15 @@ ticketRouter.post('/', async (c) => {
     return c.json({ error: 'Invalid JSON' }, 400);
   }
 
-  const { stationUuid, reportedByUserId, issueTitle, issueDescription } = body;
+  const { stationUuid, issueTitle, issueDescription } = body;
   
-  if (!stationUuid || !reportedByUserId || !issueTitle || !issueDescription) {
+  if (!stationUuid || !issueTitle || !issueDescription) {
     return c.json({ error: 'Missing required fields' }, 400);
   }
 
   await db.insert(maintenanceTickets).values({
     stationUuid,
-    reportedByUserId,
+    reportedByUserId: payload.id,
     issueTitle,
     issueDescription,
     status: 'open',
@@ -40,8 +52,13 @@ ticketRouter.post('/', async (c) => {
 ticketRouter.put('/:id', async (c) => {
   const db = c.get('db');
   const ticketId = parseInt(c.req.param('id'));
-  const payload = c.get('jwtPayload'); // Set by auth middleware in index.ts
-  const engineerId = payload?.id;
+  const payload = c.get('jwtPayload');
+  
+  if (!payload || (payload.role !== 'admin' && payload.role !== 'engineer')) {
+    return c.json({ error: 'Forbidden' }, 403);
+  }
+
+  const engineerId = payload.id;
   
   let body;
   try {

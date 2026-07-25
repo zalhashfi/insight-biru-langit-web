@@ -11,6 +11,7 @@ import { logsRouter } from './routes/logs';
 import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
+import { jwt } from 'hono/jwt';
 
 type Bindings = {
   HYPERDRIVE: any;
@@ -59,14 +60,27 @@ app.use('*', async (c, next) => {
 // Global error handler
 app.onError((err, c) => {
   console.error('Unhandled Exception:', err);
+  
+  // In production, do not leak error details
   return c.json({
-    error: 'Internal Server Error',
-    message: err.message,
-    cause: err.cause ? String(err.cause) : null,
-    stack: err.stack,
-    details: JSON.stringify(err, Object.getOwnPropertyNames(err))
+    error: 'Internal Server Error'
   }, 500);
 });
+
+// Custom middleware to access env variables for JWT
+const jwtAuth = async (c: any, next: any) => {
+  const secret = c.env?.JWT_SECRET;
+  if (!secret) {
+    return c.json({ error: 'Server configuration error' }, 500);
+  }
+  const jwtMiddleware = jwt({ secret });
+  return jwtMiddleware(c, next);
+};
+
+app.use('/api/tickets/*', jwtAuth);
+app.use('/api/users/*', jwtAuth);
+app.use('/api/stations/*', jwtAuth);
+app.use('/api/data/*', jwtAuth);
 
 // Routes
 app.route('/api/iot', iotRouter);

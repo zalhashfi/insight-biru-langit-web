@@ -1,6 +1,9 @@
 import { Hono } from 'hono';
 import { users } from '../db/schema';
 import { eq } from 'drizzle-orm';
+import { z } from 'zod';
+import { zValidator } from '@hono/zod-validator';
+import * as bcrypt from 'bcryptjs';
 
 export const usersRouter = new Hono<{ Variables: { db: any, jwtPayload: any } }>();
 
@@ -24,7 +27,18 @@ usersRouter.get('/', async (c) => {
   return c.json({ users: allUsers }, 200);
 });
 
-usersRouter.post('/', async (c) => {
+const createUserSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  fullName: z.string().min(2),
+  role: z.enum(['admin', 'engineer', 'user']).optional()
+});
+
+usersRouter.post('/', zValidator('json', createUserSchema, (result, c) => {
+  if (!result.success) {
+    return c.json({ error: 'Validation failed', details: result.error.format() }, 400);
+  }
+}), async (c) => {
   const db = c.get('db');
   const payload = c.get('jwtPayload');
   
@@ -32,21 +46,9 @@ usersRouter.post('/', async (c) => {
     return c.json({ error: 'Forbidden' }, 403);
   }
 
-  let body;
-  try {
-    body = await c.req.json();
-  } catch (e) {
-    return c.json({ error: 'Invalid JSON' }, 400);
-  }
+  const { email, password, fullName, role } = c.req.valid('json');
 
-  const { email, password, fullName, role } = body;
-  
-  if (!email || !password || !fullName) {
-    return c.json({ error: 'Missing required fields' }, 400);
-  }
-
-  // TODO: Hash password properly in a real app
-  const passwordHash = `hashed_${password}`;
+  const passwordHash = await bcrypt.hash(password, 10);
 
   try {
     await db.insert(users).values({
@@ -59,7 +61,10 @@ usersRouter.post('/', async (c) => {
     });
 
     return c.json({ message: 'User created successfully' }, 201);
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      return c.json({ error: 'Email already exists' }, 409);
+    }
     return c.json({ error: 'Error creating user' }, 500);
   }
 });

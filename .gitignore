@@ -10,3 +10,9 @@
 .worktrees/
 docs/
 test_post.mjs
+
+# Environment variables
+.env
+.env.*
+!.env.example
+.dev.vars

@@ -3,22 +3,24 @@ import { eq } from 'drizzle-orm';
 import { users } from '../db/schema';
 import { sign } from 'hono/jwt';
 import * as bcrypt from 'bcryptjs';
+import { z } from 'zod';
+import { zValidator } from '@hono/zod-validator';
 
 export const authRouter = new Hono<{ Variables: { db: any }, Bindings: { JWT_SECRET: string } }>();
 
-authRouter.post('/login', async (c) => {
-  const db = c.get('db');
-  let body;
-  try {
-    body = await c.req.json();
-  } catch (e) {
-    return c.json({ error: 'Invalid JSON' }, 400);
-  }
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1)
+});
 
-  const { email, password } = body;
-  if (!email || !password) {
-    return c.json({ error: 'Email and password are required' }, 400);
+authRouter.post('/login', zValidator('json', loginSchema, (result, c) => {
+  if (!result.success) {
+    return c.json({ error: 'Validation failed', details: result.error.format() }, 400);
   }
+}), async (c) => {
+  const db = c.get('db');
+  
+  const { email, password } = c.req.valid('json');
 
   const result = await db.select().from(users).where(eq(users.email, email));
   if (result.length === 0) {
