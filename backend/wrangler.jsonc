@@ -6,6 +6,13 @@
 	"compatibility_flags": [
 		"nodejs_compat"
 	],
+	"hyperdrive": [
+		{
+			"binding": "HYPERDRIVE",
+			"id": "957e0d69b0f14a6592208df23d829cf6",
+			"localConnectionString": "postgresql://user:pass@localhost:5432/postgres"
+		}
+	],
 
 	"kv_namespaces": [
 		{

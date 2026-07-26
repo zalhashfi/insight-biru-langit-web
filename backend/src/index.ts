@@ -14,9 +14,10 @@ import { secureHeaders } from 'hono/secure-headers';
 import { jwt } from 'hono/jwt';
 
 type Bindings = {
+  HYPERDRIVE: any;
   JWT_SECRET: string;
   RATE_LIMITER: any;
-  DATABASE_URL: string;
+  DATABASE_URL?: string;
 }
 
 const app = new Hono<{ Bindings: Bindings, Variables: { db: any } }>();
@@ -42,10 +43,22 @@ app.route('/api/logs', logsRouter);
 
 // Database middleware
 app.use('*', async (c, next) => {
-  if (c.env?.DATABASE_URL && !c.get('db')) {
+  // If we have HYPERDRIVE, use it. Otherwise fallback to DATABASE_URL.
+  let uri = c.env?.DATABASE_URL;
+  
+  if (c.env?.HYPERDRIVE) {
+    const hdUri = c.env.HYPERDRIVE.connectionString;
+    // In local dev, miniflare currently mocks hyperdrive with a dummy postgres string. 
+    // If it returns the mock, fallback to DATABASE_URL for local MySQL development.
+    if (!hdUri.startsWith('postgres') || !c.env?.DATABASE_URL) {
+      uri = hdUri;
+    }
+  }
+
+  if (uri && !c.get('db')) {
     try {
       const connection = await mysql.createConnection({
-        uri: c.env.DATABASE_URL,
+        uri,
         disableEval: true
       });
       const db = drizzle(connection);
