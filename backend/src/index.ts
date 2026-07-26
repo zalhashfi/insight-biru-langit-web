@@ -87,7 +87,7 @@ const jwtAuth = async (c: any, next: any) => {
   if (!secret) {
     return c.json({ error: 'Server configuration error' }, 500);
   }
-  const jwtMiddleware = jwt({ secret, cookie: 'token' });
+  const jwtMiddleware = jwt({ secret, cookie: 'token', alg: 'HS256' });
   return jwtMiddleware(c, next);
 };
 

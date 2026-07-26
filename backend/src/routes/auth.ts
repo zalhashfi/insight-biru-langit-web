@@ -46,7 +46,7 @@ authRouter.post('/login', zValidator('json', loginSchema, (result, c) => {
   if (!secret) {
     return c.json({ error: 'Server configuration error: missing JWT_SECRET' }, 500);
   }
-  const token = await sign(payload, secret);
+  const token = await sign(payload, secret, 'HS256');
 
   // Set the HttpOnly cookie
   setCookie(c, 'token', token, {
