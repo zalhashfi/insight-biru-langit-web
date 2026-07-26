@@ -5,9 +5,15 @@ import { sign } from 'hono/jwt';
 
 const mockDb = {
   select: vi.fn(() => ({
-    from: vi.fn().mockResolvedValue([
-      { id: 1, stationUuid: 'st-1', status: 'open', issueTitle: 'Sensor mati' }
-    ])
+    from: vi.fn(() => ({
+      where: vi.fn().mockResolvedValue([
+        { id: 1, stationUuid: 'st-1', status: 'open', issueTitle: 'Sensor mati', assignedToEngineerId: 1 }
+      ]),
+      // In case some queries don't use where, we can make it thenable or just rely on where
+      then: function(resolve: any) {
+        resolve([{ id: 1, stationUuid: 'st-1', status: 'open', issueTitle: 'Sensor mati', assignedToEngineerId: 1 }]);
+      }
+    }))
   })),
   update: vi.fn(() => ({
     set: vi.fn(() => ({

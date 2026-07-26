@@ -31,7 +31,7 @@ describe('Data API', () => {
   });
 
   it('should get aqms data for a station', async () => {
-    const res = await app.request('/api/data/aqms?stationUuid=station-123', { method: 'GET' });
+    const res = await app.request('/api/data/aqms?stationUuid=123e4567-e89b-12d3-a456-426614174000', { method: 'GET' });
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.data).toHaveLength(1);

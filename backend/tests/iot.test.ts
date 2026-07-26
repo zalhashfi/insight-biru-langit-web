@@ -23,9 +23,10 @@ describe('IoT Ingestion API', () => {
 
   beforeEach(() => {
     app = new Hono();
-    // Inject mock DB into context
+    // Inject mock DB and Env into context
     app.use('*', async (c, next) => {
       c.set('db', mockDb as any);
+      c.env = { IOT_DEVICE_SECRET: 'test-secret' };
       await next();
     });
     app.route('/api/iot', iotRouter);
@@ -94,7 +95,10 @@ describe('IoT Ingestion API', () => {
     it('should return UUID when valid MAC address is provided', async () => {
       const res = await app.request('/api/iot/identity', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-device-secret': 'test-secret'
+        },
         body: JSON.stringify({ macAddress: '00:11:22:33:44:55' })
       });
       

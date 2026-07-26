@@ -46,12 +46,12 @@ describe('Stations API', () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        uuid: 'station-456',
+        uuid: '123e4567-e89b-12d3-a456-426614174000',
         name: 'Station 2',
+        projectName: 'Biru Langit',
         type: 'soc',
         latitude: -6.200000,
-        longitude: 106.816666,
-        apiKey: 'secret-api-key'
+        longitude: 106.816666
       })
     });
     expect(res.status).toBe(201);
