@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter } from 'react-router';
 import { StationList } from './StationList';
 
 const queryClient = new QueryClient({
@@ -14,18 +15,20 @@ describe('StationList Page', () => {
 
   it('should render a list of stations fetched from the API', async () => {
     const mockStations = [
-      { id: '1', name: 'Stasiun Alpha', location: 'Jakarta', firmwareVersion: '1.0.0' },
-      { id: '2', name: 'Stasiun Beta', location: 'Bandung', firmwareVersion: '2.0.0' },
+      { uuid: '1', name: 'Stasiun Alpha', projectName: 'Biru Langit', type: 'aqms', macAddress: '00:11:22', currentVersion: '1.0.0', latitude: null, longitude: null },
+      { uuid: '2', name: 'Stasiun Beta', projectName: 'Biru Langit 2', type: 'soc', macAddress: null, currentVersion: '2.0.0', latitude: -7.0, longitude: 110.0 },
     ];
 
     (global.fetch as any).mockResolvedValueOnce({
       ok: true,
-      json: async () => mockStations,
+      json: async () => ({ stations: mockStations }),
     });
 
     render(
       <QueryClientProvider client={queryClient}>
-        <StationList />
+        <BrowserRouter>
+          <StationList />
+        </BrowserRouter>
       </QueryClientProvider>
     );
 
@@ -36,19 +39,21 @@ describe('StationList Page', () => {
     });
 
     // Memastikan lokasi juga ditampilkan
-    expect(screen.getByText('Jakarta')).toBeInTheDocument();
-    expect(screen.getByText('Bandung')).toBeInTheDocument();
+    expect(screen.getByText('Biru Langit')).toBeInTheDocument();
+    expect(screen.getByText('Biru Langit 2')).toBeInTheDocument();
   });
 
   it('should open the Add Station dialog when clicking the button', async () => {
     (global.fetch as any).mockResolvedValueOnce({
       ok: true,
-      json: async () => [],
+      json: async () => ({ stations: [] }),
     });
 
     render(
       <QueryClientProvider client={queryClient}>
-        <StationList />
+        <BrowserRouter>
+          <StationList />
+        </BrowserRouter>
       </QueryClientProvider>
     );
 
