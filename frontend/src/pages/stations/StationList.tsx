@@ -25,11 +25,8 @@ type Station = {
 };
 
 async function fetchStations(): Promise<Station[]> {
-  const token = localStorage.getItem('token');
   const res = await fetch('/api/stations', {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
+    credentials: 'include'
   });
   if (!res.ok) {
     logToCloudflare('error', 'Failed to fetch stations', { status: res.status });

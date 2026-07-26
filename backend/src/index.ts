@@ -16,6 +16,7 @@ import { jwt } from 'hono/jwt';
 type Bindings = {
   HYPERDRIVE: any;
   JWT_SECRET: string;
+  RATE_LIMITER: any;
 }
 
 const app = new Hono<{ Bindings: Bindings, Variables: { db: any } }>();
@@ -73,7 +74,7 @@ const jwtAuth = async (c: any, next: any) => {
   if (!secret) {
     return c.json({ error: 'Server configuration error' }, 500);
   }
-  const jwtMiddleware = jwt({ secret });
+  const jwtMiddleware = jwt({ secret, cookie: 'token' });
   return jwtMiddleware(c, next);
 };
 
@@ -82,28 +83,36 @@ app.use('/api/users/*', jwtAuth);
 app.use('/api/stations/*', jwtAuth);
 app.use('/api/data/*', jwtAuth);
 
-// Rate Limiter
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+// Endpoint to check auth status (so frontend doesn't need to read localStorage)
+app.get('/api/auth/me', jwtAuth, (c) => {
+  const payload = c.get('jwtPayload');
+  return c.json({ user: payload }, 200);
+});
 
+// KV-based Rate Limiter
 const rateLimiter = async (c: any, next: any) => {
   const ip = c.req.header('cf-connecting-ip') || 'unknown';
-  const now = Date.now();
-  const windowMs = 60 * 1000; // 1 minute window
-  const maxRequests = 20; // max 20 requests per minute
-
-  let record = rateLimitMap.get(ip);
-  if (!record || now > record.resetTime) {
-    record = { count: 1, resetTime: now + windowMs };
-  } else {
-    record.count++;
-  }
+  const kv = c.env?.RATE_LIMITER;
   
-  rateLimitMap.set(ip, record);
+  if (!kv) {
+    console.warn('RATE_LIMITER KV namespace not bound. Falling back to allowed.');
+    return next();
+  }
 
-  if (record.count > maxRequests) {
+  const key = `ratelimit:${ip}`;
+  const maxRequests = 20; // 20 requests per minute
+  
+  const currentCountStr = await kv.get(key);
+  let count = currentCountStr ? parseInt(currentCountStr, 10) : 0;
+  
+  if (count >= maxRequests) {
     return c.json({ error: 'Too Many Requests' }, 429);
   }
-
+  
+  count++;
+  // Set TTL to 60 seconds. Note: expirationTtl minimum is 60 seconds for KV
+  await kv.put(key, count.toString(), { expirationTtl: 60 });
+  
   return next();
 };
 

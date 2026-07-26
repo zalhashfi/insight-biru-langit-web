@@ -49,8 +49,10 @@ describe('Auth API', () => {
     });
 
     expect(res.status).toBe(200);
+    const setCookie = res.headers.get('Set-Cookie');
+    expect(setCookie).toContain('token=');
+    expect(setCookie).toContain('HttpOnly');
     const body = await res.json();
-    expect(body).toHaveProperty('token');
     expect(body.user).toEqual({
       id: 1,
       email: 'admin@biru-langit.com',

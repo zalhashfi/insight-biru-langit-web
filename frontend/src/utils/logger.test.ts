@@ -21,6 +21,7 @@ describe('logToCloudflare', () => {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify({
         level: 'info',
         message: 'User viewed dashboard',

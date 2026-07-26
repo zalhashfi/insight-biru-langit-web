@@ -40,7 +40,6 @@ export function AddStationDialog() {
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const token = localStorage.getItem('token');
       const payload = {
         uuid: crypto.randomUUID(),
         name: data.name,
@@ -50,13 +49,13 @@ export function AddStationDialog() {
         ...(data.latitude ? { latitude: parseFloat(data.latitude) } : {}),
         ...(data.longitude ? { longitude: parseFloat(data.longitude) } : {})
       };
-
+      
       const res = await fetch('/api/stations', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify(payload)
       });
       if (!res.ok) {
@@ -120,7 +119,7 @@ export function AddStationDialog() {
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="type" className="text-right">Tipe Alat</Label>
             <div className="col-span-3">
-              <Select value={formData.type} onValueChange={(v) => setFormData({ ...formData, type: v })}>
+              <Select value={formData.type} onValueChange={(v) => setFormData({ ...formData, type: v || '' })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Pilih tipe" />
                 </SelectTrigger>

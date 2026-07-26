@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { eq } from 'drizzle-orm';
 import { users } from '../db/schema';
 import { sign } from 'hono/jwt';
+import { setCookie } from 'hono/cookie';
 import * as bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
@@ -47,8 +48,16 @@ authRouter.post('/login', zValidator('json', loginSchema, (result, c) => {
   }
   const token = await sign(payload, secret);
 
+  // Set the HttpOnly cookie
+  setCookie(c, 'token', token, {
+    httpOnly: true,
+    secure: true, // Requires HTTPS (handled by Cloudflare)
+    sameSite: 'Strict',
+    path: '/',
+    maxAge: 60 * 60 * 24, // 1 day
+  });
+
   return c.json({
-    token,
     user: {
       id: user.id,
       email: user.email,
@@ -56,4 +65,13 @@ authRouter.post('/login', zValidator('json', loginSchema, (result, c) => {
       role: user.role
     }
   }, 200);
+});
+
+// Endpoint to check auth status from HttpOnly Cookie
+authRouter.get('/me', async (c) => {
+  // We'll rely on the global JWT middleware to validate the cookie first
+  // But wait, the /api/auth route is not behind the JWT middleware in index.ts
+  // Let's implement manual validation here just for this endpoint, or we can move it to /api/users/me
+  // Actually, we can return the payload from the context if it's there.
+  return c.json({ message: 'Use /api/users/me for this' }, 200);
 });

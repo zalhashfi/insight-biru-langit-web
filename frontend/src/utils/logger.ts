@@ -15,6 +15,7 @@ export async function logToCloudflare(level: LogLevel, message: string, data?: a
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify({
         level,
         message,

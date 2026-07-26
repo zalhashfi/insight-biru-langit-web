@@ -7,11 +7,8 @@ import { useNavigate } from 'react-router';
 
 // API Fetcher
 const fetchUnregisteredDevices = async () => {
-  const token = localStorage.getItem('token');
   const res = await fetch('/api/stations/unregistered', {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
+    credentials: 'include'
   });
   
   if (!res.ok) {

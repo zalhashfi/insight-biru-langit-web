@@ -10,8 +10,8 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
-import { Line, LineChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from '@/components/ui/chart';
+import { Line, LineChart, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 type Station = {
   id: string;
@@ -21,7 +21,7 @@ type Station = {
 };
 
 async function fetchStations(): Promise<Station[]> {
-  const res = await fetch('/api/stations');
+  const res = await fetch('/api/stations', { credentials: 'include' });
   if (!res.ok) throw new Error('Failed to fetch stations');
   const json = await res.json();
   return json.stations || [];
@@ -29,7 +29,7 @@ async function fetchStations(): Promise<Station[]> {
 
 async function fetchTelemetry(stationUuid: string) {
   if (!stationUuid) return { type: '', data: [] };
-  const res = await fetch(`/api/data/${stationUuid}/history?limit=100`);
+  const res = await fetch(`/api/data/${stationUuid}/history?limit=100`, { credentials: 'include' });
   if (!res.ok) throw new Error('Failed to fetch telemetry');
   return res.json();
 }
@@ -52,7 +52,7 @@ export function TelemetryList() {
   const type = telemetryResult?.type;
   const telemetries = telemetryResult?.data || [];
 
-  const chartConfig = type === 'aqms' ? {
+  const chartConfig: ChartConfig = type === 'aqms' ? {
     pm25: { label: 'PM 2.5', color: 'hsl(var(--chart-1))' },
     temperature: { label: 'Suhu', color: 'hsl(var(--chart-2))' },
     humidity: { label: 'Kelembapan', color: 'hsl(var(--chart-3))' },
@@ -79,7 +79,7 @@ export function TelemetryList() {
           {isLoadingStations ? (
             <p>Loading stations...</p>
           ) : (
-            <Select onValueChange={setSelectedStationUuid} value={selectedStationUuid}>
+            <Select onValueChange={(v) => setSelectedStationUuid(v || '')} value={selectedStationUuid}>
               <SelectTrigger className="w-full sm:w-[300px]">
                 <SelectValue placeholder="Pilih Stasiun" />
               </SelectTrigger>

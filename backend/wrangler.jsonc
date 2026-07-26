@@ -12,15 +12,15 @@
 			"id": "957e0d69b0f14a6592208df23d829cf6"
 		}
 	],
+	"kv_namespaces": [
+		{
+			"binding": "RATE_LIMITER",
+			"id": "1bb63666623f4f3aad3a6d1314028b96"
+		}
+	],
 	// "vars": {
 	//   "MY_VAR": "my-variable"
 	// },
-	// "kv_namespaces": [
-	//   {
-	//     "binding": "MY_KV_NAMESPACE",
-	//     "id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-	//   }
-	// ],
 	// "r2_buckets": [
 	//   {
 	//     "binding": "MY_BUCKET",
@@ -40,11 +40,4 @@
 	// "observability": {
 	//   "enabled": true,
 	//   "head_sampling_rate": 1
-	// }
-	"hyperdrive": [
-		{
-			"binding": "HYPERDRIVE",
-			"id": "957e0d69b0f14a6592208df23d829cf6"
-		}
-	]
 }
