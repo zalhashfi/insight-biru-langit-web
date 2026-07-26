@@ -4,6 +4,31 @@ import { station, rawSensorLog, dataAqms, dataSoc, firmwareRelease } from '../db
 
 export const iotRouter = new Hono<{ Variables: { db: any } }>();
 
+iotRouter.post('/identity', async (c) => {
+  const db = c.get('db');
+  let body;
+  
+  try {
+    body = await c.req.json();
+  } catch (e) {
+    return c.json({ error: 'Invalid JSON payload' }, 400);
+  }
+
+  const { macAddress } = body;
+  
+  if (!macAddress) {
+    return c.json({ error: 'macAddress is required' }, 400);
+  }
+
+  const stations = await db.select().from(station).where(eq(station.macAddress, macAddress));
+  
+  if (stations.length === 0) {
+    return c.json({ error: 'Device not registered. Please contact administrator.' }, 404);
+  }
+
+  return c.json({ uuid: stations[0].uuid }, 200);
+});
+
 iotRouter.post('/ingest', async (c) => {
   const db = c.get('db');
   // Temporary workaround: devices might still use the old station.apiKey logic or maybe they send it in header.

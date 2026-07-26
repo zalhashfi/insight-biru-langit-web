@@ -89,4 +89,28 @@ describe('IoT Ingestion API', () => {
 
     expect(res.status).toBe(401);
   });
+
+  describe('Identity Endpoint', () => {
+    it('should return UUID when valid MAC address is provided', async () => {
+      const res = await app.request('/api/iot/identity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ macAddress: '00:11:22:33:44:55' })
+      });
+      
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body).toEqual({ uuid: 'station-aqms-123' });
+    });
+
+    it('should return 400 when MAC address is missing', async () => {
+      const res = await app.request('/api/iot/identity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      
+      expect(res.status).toBe(400);
+    });
+  });
 });
