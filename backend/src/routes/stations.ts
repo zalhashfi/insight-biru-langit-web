@@ -11,7 +11,21 @@ stationsRouter.get('/', async (c) => {
   
   return c.json({ stations: allStations }, 200);
 });
+import { unregisteredDevices } from '../db/schema';
 
+stationsRouter.get('/unregistered', async (c) => {
+  const db = c.get('db');
+  
+  // optionally check auth, but currently / is not checking auth for GET, let's keep consistency or we could add auth
+  const payload = c.get('jwtPayload');
+  if (payload?.role !== 'admin' && payload?.role !== 'engineer') {
+    return c.json({ error: 'Forbidden' }, 403);
+  }
+
+  const unreg = await db.select().from(unregisteredDevices);
+  
+  return c.json({ data: unreg }, 200);
+});
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
 
@@ -57,4 +71,21 @@ stationsRouter.post('/', zValidator('json', createStationSchema, (result, c) => 
     }
     return c.json({ error: 'Error creating station' }, 500);
   }
+});
+stationsRouter.get('/:uuid', async (c) => {
+  const db = c.get('db');
+  const uuid = c.req.param('uuid');
+  
+  const payload = c.get('jwtPayload');
+  if (payload?.role !== 'admin' && payload?.role !== 'engineer') {
+    return c.json({ error: 'Forbidden' }, 403);
+  }
+
+  const s = await db.select().from(station).where(eq(station.uuid, uuid));
+  
+  if (s.length === 0) {
+    return c.json({ error: 'Station not found' }, 404);
+  }
+
+  return c.json({ data: s[0] }, 200);
 });

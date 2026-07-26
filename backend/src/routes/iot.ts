@@ -1,8 +1,9 @@
 import { Hono } from 'hono';
 import { eq, desc } from 'drizzle-orm';
-import { station, rawSensorLog, dataAqms, dataSoc, firmwareRelease } from '../db/schema';
+import { station, rawSensorLog, dataAqms, dataSoc, firmwareRelease, unregisteredDevices } from '../db/schema';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
+import { sql } from 'drizzle-orm';
 
 export const iotRouter = new Hono<{ Bindings: { IOT_DEVICE_SECRET: string }, Variables: { db: any } }>();
 
@@ -27,6 +28,18 @@ iotRouter.post('/identity', zValidator('json', identitySchema, (result, c) => {
   const stations = await db.select().from(station).where(eq(station.macAddress, macAddress));
   
   if (stations.length === 0) {
+    // Log unregistered MAC address
+    // Delete older than 24 hours
+    await db.delete(unregisteredDevices).where(sql`last_seen_at < NOW() - INTERVAL 1 DAY`);
+    // Insert or update (on duplicate key) using raw sql or just insert ignore, but we can do an insert with on duplicate key update if drizzle supports it.
+    // Drizzle MySQL onDuplicateKeyUpdate:
+    await db.insert(unregisteredDevices).values({
+      macAddress: macAddress,
+      lastSeenAt: new Date()
+    }).onDuplicateKeyUpdate({
+      set: { lastSeenAt: new Date() }
+    });
+
     return c.json({ error: 'Device not registered. Please contact administrator.' }, 404);
   }
 

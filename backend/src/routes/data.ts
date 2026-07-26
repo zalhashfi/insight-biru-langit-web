@@ -42,3 +42,37 @@ dataRouter.get('/soc', zValidator('query', querySchema, (result, c) => {
   
   return c.json({ data }, 200);
 });
+
+import { station } from '../db/schema';
+
+dataRouter.get('/:uuid/history', async (c) => {
+  const db = c.get('db');
+  const uuid = c.req.param('uuid');
+  
+  // optionally limit
+  const limitStr = c.req.query('limit');
+  const limit = limitStr ? parseInt(limitStr, 10) : 100;
+
+  // find station type
+  const s = await db.select().from(station).where(eq(station.uuid, uuid));
+  if (s.length === 0) {
+    return c.json({ error: 'Station not found' }, 404);
+  }
+
+  const type = s[0].type;
+  let data = [];
+
+  if (type === 'aqms') {
+    data = await db.select().from(dataAqms)
+      .where(eq(dataAqms.stationUuid, uuid))
+      .orderBy(desc(dataAqms.measuredAt))
+      .limit(limit);
+  } else if (type === 'soc') {
+    data = await db.select().from(dataSoc)
+      .where(eq(dataSoc.stationUuid, uuid))
+      .orderBy(desc(dataSoc.measuredAt))
+      .limit(limit);
+  }
+
+  return c.json({ type, data }, 200);
+});

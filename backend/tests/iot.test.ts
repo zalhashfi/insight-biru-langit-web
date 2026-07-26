@@ -3,16 +3,25 @@ import { Hono } from 'hono';
 import { iotRouter } from '../src/routes/iot';
 
 // Mock DB
+let mockReturnEmpty = false;
+
 const mockDb = {
   insert: vi.fn(() => ({
-    values: vi.fn().mockResolvedValue([{ insertId: 1 }])
+    values: vi.fn().mockReturnValue({
+      onDuplicateKeyUpdate: vi.fn().mockResolvedValue([{ insertId: 1 }]),
+      then: function(resolve: any) { resolve([{ insertId: 1 }]); }
+    })
+  })),
+  delete: vi.fn(() => ({
+    where: vi.fn().mockResolvedValue([{ affectedRows: 1 }])
   })),
   select: vi.fn(() => ({
     from: vi.fn(() => ({
-      where: vi.fn().mockImplementation((condition) => {
-        // Return a mock station for testing
-        // Check if condition contains 'valid-api-key-soc' somehow, but we'll just mock based on a global or switch
-        return Promise.resolve([{ uuid: 'station-aqms-123', type: 'aqms' }]);
+      where: vi.fn().mockImplementation((condition: any) => {
+        if (mockReturnEmpty) {
+          return Promise.resolve([]);
+        }
+        return Promise.resolve([{ uuid: 'station-aqms-123', type: 'aqms', currentVersion: '1.0.0', projectName: 'test-proj' }]);
       })
     }))
   }))
@@ -22,6 +31,7 @@ describe('IoT Ingestion API', () => {
   let app: Hono;
 
   beforeEach(() => {
+    mockReturnEmpty = false;
     app = new Hono();
     // Inject mock DB and Env into context
     app.use('*', async (c, next) => {
@@ -110,11 +120,31 @@ describe('IoT Ingestion API', () => {
     it('should return 400 when MAC address is missing', async () => {
       const res = await app.request('/api/iot/identity', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-device-secret': 'test-secret' },
         body: JSON.stringify({})
       });
       
       expect(res.status).toBe(400);
+    });
+
+    it('should log unregistered MAC address and return 404', async () => {
+      mockReturnEmpty = true;
+      const res = await app.request('/api/iot/identity', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-device-secret': 'test-secret'
+        },
+        body: JSON.stringify({ macAddress: 'unknown-mac' })
+      });
+      
+      expect(res.status).toBe(404);
+      const body = await res.json();
+      expect(body).toEqual({ error: 'Device not registered. Please contact administrator.' });
+      
+      // Ensure it deleted old devices and inserted the new unregistered device
+      expect(mockDb.delete).toHaveBeenCalled();
+      expect(mockDb.insert).toHaveBeenCalled();
     });
   });
 });

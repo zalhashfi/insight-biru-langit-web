@@ -65,6 +65,12 @@ export const firmwareRelease = mysqlTable('firmware_release', {
   createdAt: timestamp('created_at').defaultNow().notNull()
 });
 
+export const unregisteredDevices = mysqlTable('unregistered_devices', {
+  macAddress: varchar('mac_address', { length: 20 }).primaryKey(),
+  lastSeenAt: timestamp('last_seen_at').defaultNow().onUpdateNow().notNull()
+});
+
+
 // ==========================================
 // C. COLD PATH (Penyimpanan Raw & Log)
 // ==========================================

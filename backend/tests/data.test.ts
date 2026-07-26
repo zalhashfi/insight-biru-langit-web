@@ -10,7 +10,8 @@ const mockDb = {
           limit: vi.fn().mockResolvedValue([
             { id: 1, stationUuid: 'station-123', pm25: 15.5, temperature: 28.5 }
           ])
-        }))
+        })),
+        then: function(resolve: any) { resolve([{ uuid: 'station-123', type: 'aqms' }]); }
       }))
     }))
   }))
@@ -34,6 +35,15 @@ describe('Data API', () => {
     const res = await app.request('/api/data/aqms?stationUuid=123e4567-e89b-12d3-a456-426614174000', { method: 'GET' });
     expect(res.status).toBe(200);
     const body = await res.json();
+    expect(body.data).toHaveLength(1);
+    expect(body.data[0].pm25).toBe(15.5);
+  });
+
+  it('should get history data for a station dynamically', async () => {
+    const res = await app.request('/api/data/123e4567-e89b-12d3-a456-426614174000/history', { method: 'GET' });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.type).toBe('aqms');
     expect(body.data).toHaveLength(1);
     expect(body.data[0].pm25).toBe(15.5);
   });
