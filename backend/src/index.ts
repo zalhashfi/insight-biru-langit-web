@@ -12,6 +12,7 @@ import { logger } from 'hono/logger';
 import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 import { jwt } from 'hono/jwt';
+import { HTTPException } from 'hono/http-exception';
 
 type Bindings = {
   HYPERDRIVE: any;
@@ -74,6 +75,10 @@ app.use('*', async (c, next) => {
 // Global error handler
 app.onError((err, c) => {
   console.error('Unhandled Exception:', err);
+
+  if (err instanceof HTTPException) {
+    return err.getResponse();
+  }
 
   // In production, do not leak error details
   return c.json({
