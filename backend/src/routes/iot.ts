@@ -1,24 +1,28 @@
 import { Hono } from 'hono';
 import { eq, desc } from 'drizzle-orm';
 import { station, rawSensorLog, dataAqms, dataSoc, firmwareRelease } from '../db/schema';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
 
-export const iotRouter = new Hono<{ Variables: { db: any } }>();
+export const iotRouter = new Hono<{ Bindings: { IOT_DEVICE_SECRET: string }, Variables: { db: any } }>();
 
-iotRouter.post('/identity', async (c) => {
+const identitySchema = z.object({
+  macAddress: z.string().min(1)
+});
+
+iotRouter.post('/identity', zValidator('json', identitySchema, (result, c) => {
+  if (!result.success) {
+    return c.json({ error: 'Validation failed' }, 400);
+  }
+}), async (c) => {
   const db = c.get('db');
-  let body;
   
-  try {
-    body = await c.req.json();
-  } catch (e) {
-    return c.json({ error: 'Invalid JSON payload' }, 400);
+  const deviceSecret = c.req.header('x-device-secret');
+  if (!deviceSecret || deviceSecret !== c.env.IOT_DEVICE_SECRET) {
+    return c.json({ error: 'Unauthorized device' }, 401);
   }
 
-  const { macAddress } = body;
-  
-  if (!macAddress) {
-    return c.json({ error: 'macAddress is required' }, 400);
-  }
+  const { macAddress } = c.req.valid('json');
 
   const stations = await db.select().from(station).where(eq(station.macAddress, macAddress));
   
@@ -29,18 +33,37 @@ iotRouter.post('/identity', async (c) => {
   return c.json({ uuid: stations[0].uuid }, 200);
 });
 
+const aqmsPayloadSchema = z.object({
+  pm25: z.number().min(0).max(1000).optional(),
+  no2: z.number().optional(),
+  co: z.number().optional(),
+  temp: z.number().optional(),
+  hum: z.number().optional(),
+  ws: z.number().optional(),
+  wd: z.number().optional(),
+});
+
+const socPayloadSchema = z.object({
+  ph: z.number().min(0).max(14).optional(),
+  no2: z.number().optional(),
+  ec: z.number().optional(),
+  temp: z.number().optional(),
+  hum: z.number().optional(),
+  n: z.number().optional(),
+  p: z.number().optional(),
+  k: z.number().optional(),
+});
+
 iotRouter.post('/ingest', async (c) => {
   const db = c.get('db');
-  // Temporary workaround: devices might still use the old station.apiKey logic or maybe they send it in header.
-  // Wait, in our DBML, station ONLY has uuid, name, projectName, macAddress. There's no apiKey!
-  // I must check stationUuid from headers or payload. Let's assume devices send x-api-key as their UUID for now.
+  // UUID is passed as API Key
   const apiKey = c.req.header('x-api-key');
 
   if (!apiKey) {
     return c.json({ error: 'API Key is required' }, 401);
   }
 
-  // Find station by UUID (assuming apiKey is the UUID now, since api_key column was removed)
+  // Find station by UUID
   const stations = await db.select().from(station).where(eq(station.uuid, apiKey));
   if (stations.length === 0) {
     return c.json({ error: 'Invalid API Key' }, 401);
@@ -50,8 +73,7 @@ iotRouter.post('/ingest', async (c) => {
   
   let payload: any;
   try {
-    const rawJson = await c.req.json();
-    payload = rawJson;
+    payload = await c.req.json();
   } catch (e) {
     return c.json({ error: 'Invalid JSON payload' }, 400);
   }
@@ -66,39 +88,43 @@ iotRouter.post('/ingest', async (c) => {
 
   // 2. Validate and Insert for Hot Path based on type
   if (currentStation.type === 'aqms') {
-    const pm25 = payload.pm25;
-    const isValidPm25 = pm25 !== undefined && pm25 >= 0 && pm25 <= 1000;
+    const parseResult = aqmsPayloadSchema.safeParse(payload);
     
-    if (isValidPm25) {
-      await db.insert(dataAqms).values({
-        stationUuid: currentStation.uuid,
-        pm25: payload.pm25,
-        no2: payload.no2,
-        co: payload.co,
-        temp: payload.temp,
-        hum: payload.hum,
-        ws: payload.ws,
-        wd: payload.wd,
-        measuredAt: new Date()
-      });
+    if (parseResult.success) {
+      const validData = parseResult.data;
+      if (validData.pm25 !== undefined) {
+        await db.insert(dataAqms).values({
+          stationUuid: currentStation.uuid,
+          pm25: validData.pm25,
+          no2: validData.no2,
+          co: validData.co,
+          temp: validData.temp,
+          hum: validData.hum,
+          ws: validData.ws,
+          wd: validData.wd,
+          measuredAt: new Date()
+        });
+      }
     }
   } else if (currentStation.type === 'soc') {
-    const ph = payload.ph;
-    const isValidPh = ph !== undefined && ph >= 0 && ph <= 14;
+    const parseResult = socPayloadSchema.safeParse(payload);
     
-    if (isValidPh || payload.n !== undefined) {
-      await db.insert(dataSoc).values({
-        stationUuid: currentStation.uuid,
-        ph: payload.ph,
-        no2: payload.no2,
-        ec: payload.ec,
-        temp: payload.temp,
-        hum: payload.hum,
-        n: payload.n,
-        p: payload.p,
-        k: payload.k,
-        measuredAt: new Date()
-      });
+    if (parseResult.success) {
+      const validData = parseResult.data;
+      if (validData.ph !== undefined || validData.n !== undefined) {
+        await db.insert(dataSoc).values({
+          stationUuid: currentStation.uuid,
+          ph: validData.ph,
+          no2: validData.no2,
+          ec: validData.ec,
+          temp: validData.temp,
+          hum: validData.hum,
+          n: validData.n,
+          p: validData.p,
+          k: validData.k,
+          measuredAt: new Date()
+        });
+      }
     }
   }
 

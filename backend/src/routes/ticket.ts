@@ -16,7 +16,20 @@ ticketRouter.get('/', async (c) => {
   return c.json({ tickets }, 200);
 });
 
-ticketRouter.post('/', async (c) => {
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
+
+const createTicketSchema = z.object({
+  stationUuid: z.string().uuid(),
+  issueTitle: z.string().min(3).max(255),
+  issueDescription: z.string().min(10)
+});
+
+ticketRouter.post('/', zValidator('json', createTicketSchema, (result, c) => {
+  if (!result.success) {
+    return c.json({ error: 'Validation failed', details: result.error.format() }, 400);
+  }
+}), async (c) => {
   const db = c.get('db');
   const payload = c.get('jwtPayload');
   
@@ -24,18 +37,7 @@ ticketRouter.post('/', async (c) => {
     return c.json({ error: 'Unauthorized' }, 401);
   }
   
-  let body;
-  try {
-    body = await c.req.json();
-  } catch (e) {
-    return c.json({ error: 'Invalid JSON' }, 400);
-  }
-
-  const { stationUuid, issueTitle, issueDescription } = body;
-  
-  if (!stationUuid || !issueTitle || !issueDescription) {
-    return c.json({ error: 'Missing required fields' }, 400);
-  }
+  const { stationUuid, issueTitle, issueDescription } = c.req.valid('json');
 
   await db.insert(maintenanceTickets).values({
     stationUuid,
@@ -49,7 +51,16 @@ ticketRouter.post('/', async (c) => {
   return c.json({ message: 'Ticket created successfully' }, 201);
 });
 
-ticketRouter.put('/:id', async (c) => {
+const updateTicketSchema = z.object({
+  status: z.enum(['open', 'in_progress', 'resolved']).optional(),
+  actionTaken: z.string().min(5).optional()
+});
+
+ticketRouter.put('/:id', zValidator('json', updateTicketSchema, (result, c) => {
+  if (!result.success) {
+    return c.json({ error: 'Validation failed', details: result.error.format() }, 400);
+  }
+}), async (c) => {
   const db = c.get('db');
   const ticketId = parseInt(c.req.param('id'));
   const payload = c.get('jwtPayload');
@@ -58,16 +69,19 @@ ticketRouter.put('/:id', async (c) => {
     return c.json({ error: 'Forbidden' }, 403);
   }
 
-  const engineerId = payload.id;
-  
-  let body;
-  try {
-    body = await c.req.json();
-  } catch (e) {
-    return c.json({ error: 'Invalid JSON' }, 400);
+  // IDOR Protection: Check if engineer is assigned to this ticket (admin bypasses)
+  if (payload.role === 'engineer') {
+    const existingTicket = await db.select().from(maintenanceTickets).where(eq(maintenanceTickets.id, ticketId));
+    if (existingTicket.length === 0) {
+      return c.json({ error: 'Ticket not found' }, 404);
+    }
+    if (existingTicket[0].assignedToEngineerId !== payload.id) {
+      return c.json({ error: 'Forbidden: You are not assigned to this ticket' }, 403);
+    }
   }
 
-  const { status, actionTaken } = body;
+  const engineerId = payload.id;
+  const { status, actionTaken } = c.req.valid('json');
   
   if (status) {
     const updateData: any = { status };

@@ -12,7 +12,23 @@ stationsRouter.get('/', async (c) => {
   return c.json({ stations: allStations }, 200);
 });
 
-stationsRouter.post('/', async (c) => {
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
+
+const createStationSchema = z.object({
+  uuid: z.string().uuid(),
+  name: z.string().min(2).max(100),
+  projectName: z.string().min(2).max(100),
+  type: z.enum(['aqms', 'soc']),
+  latitude: z.number().min(-90).max(90).optional(),
+  longitude: z.number().min(-180).max(180).optional()
+});
+
+stationsRouter.post('/', zValidator('json', createStationSchema, (result, c) => {
+  if (!result.success) {
+    return c.json({ error: 'Validation failed', details: result.error.format() }, 400);
+  }
+}), async (c) => {
   const db = c.get('db');
   const payload = c.get('jwtPayload');
   
@@ -20,18 +36,7 @@ stationsRouter.post('/', async (c) => {
     return c.json({ error: 'Forbidden' }, 403);
   }
 
-  let body;
-  try {
-    body = await c.req.json();
-  } catch (e) {
-    return c.json({ error: 'Invalid JSON' }, 400);
-  }
-
-  const { uuid, name, type, latitude, longitude, apiKey, projectName } = body;
-  
-  if (!uuid || !name || !type || !apiKey) {
-    return c.json({ error: 'Missing required fields' }, 400);
-  }
+  const { uuid, name, type, latitude, longitude, projectName } = c.req.valid('json');
 
   try {
     await db.insert(station).values({
@@ -40,15 +45,16 @@ stationsRouter.post('/', async (c) => {
       type,
       latitude,
       longitude,
-      apiKey,
       projectName,
-      isActive: true,
       createdAt: new Date(),
       updatedAt: new Date()
     });
 
     return c.json({ message: 'Station created successfully' }, 201);
-  } catch (error) {
+  } catch (error: any) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      return c.json({ error: 'Station UUID already exists' }, 409);
+    }
     return c.json({ error: 'Error creating station' }, 500);
   }
 });

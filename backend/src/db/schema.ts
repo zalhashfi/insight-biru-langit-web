@@ -47,6 +47,8 @@ export const station = mysqlTable('station', {
   macAddress: varchar('mac_address', { length: 20 }),
   currentVersion: varchar('current_version', { length: 20 }),
   type: mysqlEnum('type', ['aqms', 'soc']).notNull(), // Added based on implementation plan for ingest routing
+  latitude: float('latitude'),
+  longitude: float('longitude'),
   lastSeenAt: timestamp('last_seen_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().onUpdateNow().notNull(),

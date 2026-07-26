@@ -1,15 +1,22 @@
 import { Hono } from 'hono';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
 
 export const logsRouter = new Hono();
 
-logsRouter.post('/', async (c) => {
-  try {
-    const body = await c.req.json();
-    const { level, message, data } = body;
+const logSchema = z.object({
+  level: z.enum(['info', 'warn', 'error', 'debug']),
+  message: z.string().min(1),
+  data: z.any().optional()
+});
 
-    if (!level || !message) {
-      return c.json({ success: false, error: 'Missing level or message' }, 400);
-    }
+logsRouter.post('/', zValidator('json', logSchema, (result, c) => {
+  if (!result.success) {
+    return c.json({ success: false, error: 'Validation failed' }, 400);
+  }
+}), async (c) => {
+  try {
+    const { level, message, data } = c.req.valid('json');
 
     const prefix = `[FRONTEND_LOG - ${level}]`;
 

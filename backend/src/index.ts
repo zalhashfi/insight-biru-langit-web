@@ -82,6 +82,34 @@ app.use('/api/users/*', jwtAuth);
 app.use('/api/stations/*', jwtAuth);
 app.use('/api/data/*', jwtAuth);
 
+// Rate Limiter
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+
+const rateLimiter = async (c: any, next: any) => {
+  const ip = c.req.header('cf-connecting-ip') || 'unknown';
+  const now = Date.now();
+  const windowMs = 60 * 1000; // 1 minute window
+  const maxRequests = 20; // max 20 requests per minute
+
+  let record = rateLimitMap.get(ip);
+  if (!record || now > record.resetTime) {
+    record = { count: 1, resetTime: now + windowMs };
+  } else {
+    record.count++;
+  }
+  
+  rateLimitMap.set(ip, record);
+
+  if (record.count > maxRequests) {
+    return c.json({ error: 'Too Many Requests' }, 429);
+  }
+
+  return next();
+};
+
+app.use('/api/auth/*', rateLimiter);
+app.use('/api/iot/identity', rateLimiter);
+
 // Routes
 app.route('/api/iot', iotRouter);
 app.route('/api/auth', authRouter);

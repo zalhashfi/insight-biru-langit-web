@@ -2,35 +2,42 @@ import { Hono } from 'hono';
 import { dataAqms, dataSoc } from '../db/schema';
 import { eq, desc } from 'drizzle-orm';
 
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
+
 export const dataRouter = new Hono<{ Variables: { db: any, jwtPayload: any } }>();
 
-dataRouter.get('/aqms', async (c) => {
-  const db = c.get('db');
-  const stationUuid = c.req.query('stationUuid');
+const querySchema = z.object({
+  stationUuid: z.string().uuid()
+});
 
-  if (!stationUuid) {
-    return c.json({ error: 'Missing stationUuid query parameter' }, 400);
+dataRouter.get('/aqms', zValidator('query', querySchema, (result, c) => {
+  if (!result.success) {
+    return c.json({ error: 'Validation failed', details: result.error.format() }, 400);
   }
+}), async (c) => {
+  const db = c.get('db');
+  const { stationUuid } = c.req.valid('query');
 
   const data = await db.select().from(dataAqms)
     .where(eq(dataAqms.stationUuid, stationUuid))
-    .orderBy(desc(dataAqms.timestamp))
+    .orderBy(desc(dataAqms.measuredAt))
     .limit(100);
   
   return c.json({ data }, 200);
 });
 
-dataRouter.get('/soc', async (c) => {
-  const db = c.get('db');
-  const stationUuid = c.req.query('stationUuid');
-
-  if (!stationUuid) {
-    return c.json({ error: 'Missing stationUuid query parameter' }, 400);
+dataRouter.get('/soc', zValidator('query', querySchema, (result, c) => {
+  if (!result.success) {
+    return c.json({ error: 'Validation failed', details: result.error.format() }, 400);
   }
+}), async (c) => {
+  const db = c.get('db');
+  const { stationUuid } = c.req.valid('query');
 
   const data = await db.select().from(dataSoc)
     .where(eq(dataSoc.stationUuid, stationUuid))
-    .orderBy(desc(dataSoc.timestamp))
+    .orderBy(desc(dataSoc.measuredAt))
     .limit(100);
   
   return c.json({ data }, 200);
