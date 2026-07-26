@@ -6,12 +6,7 @@
 	"compatibility_flags": [
 		"nodejs_compat"
 	],
-	"hyperdrive": [
-		{
-			"binding": "HYPERDRIVE",
-			"id": "957e0d69b0f14a6592208df23d829cf6"
-		}
-	],
+
 	"kv_namespaces": [
 		{
 			"binding": "RATE_LIMITER",

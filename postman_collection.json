@@ -1,0 +1,423 @@
+{
+  "info": {
+    "name": "Biru Langit API",
+    "description": "API endpoints for Biru Langit project including IoT Telemetry, Authentication, Station Management, Data Access, and Logs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8787/api",
+      "type": "string"
+    },
+    {
+      "key": "stationUuid",
+      "value": "b51e041d-d9b1-4f93-b67f-94d7d3d7af4e",
+      "type": "string"
+    },
+    {
+      "key": "iotDeviceSecret",
+      "value": "your-iot-device-secret-here",
+      "type": "string"
+    },
+    {
+      "key": "macAddress",
+      "value": "AA:BB:CC:DD:EE:FF",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication (Admin/Engineer)",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@birulangit.com\",\n  \"password\": \"securepassword123\",\n  \"name\": \"Administrator\",\n  \"role\": \"admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@birulangit.com\",\n  \"password\": \"securepassword123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Me (Check Auth)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. IoT Device Flow",
+      "item": [
+        {
+          "name": "Step 1: Get Identity (UUID)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.uuid) {",
+                  "    pm.environment.set(\"stationUuid\", jsonData.uuid);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-device-secret",
+                "value": "{{iotDeviceSecret}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"macAddress\": \"{{macAddress}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/iot/identity",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "iot",
+                "identity"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Step 2: Ingest Data (AQMS)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{stationUuid}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pm25\": 12.5,\n  \"no2\": 0.04,\n  \"co\": 0.5,\n  \"temp\": 28.5,\n  \"hum\": 65,\n  \"ws\": 2.3,\n  \"wd\": 180\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/iot/ingest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "iot",
+                "ingest"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Step 2: Ingest Data (SOC)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{stationUuid}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ph\": 6.5,\n  \"ec\": 1.2,\n  \"temp\": 28.5,\n  \"hum\": 65,\n  \"n\": 40,\n  \"p\": 30,\n  \"k\": 50\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/iot/ingest",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "iot",
+                "ingest"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Step 3: Check OTA Firmware Update",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{stationUuid}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/iot/ota?current_version=v1.0.0",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "iot",
+                "ota"
+              ],
+              "query": [
+                {
+                  "key": "current_version",
+                  "value": "v1.0.0"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Station Management",
+      "item": [
+        {
+          "name": "List Unregistered Devices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stations/unregistered",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "stations",
+                "unregistered"
+              ]
+            }
+          }
+        },
+        {
+          "name": "List All Stations",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "stations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Station",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"uuid\": \"b51e041d-d9b1-4f93-b67f-94d7d3d7af4e\",\n  \"name\": \"Station Alpha\",\n  \"projectName\": \"Project X\",\n  \"type\": \"aqms\",\n  \"macAddress\": \"AA:BB:CC:DD:EE:FF\",\n  \"latitude\": -6.200000,\n  \"longitude\": 106.816666\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/stations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "stations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Station Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stations/b51e041d-d9b1-4f93-b67f-94d7d3d7af4e",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "stations",
+                "b51e041d-d9b1-4f93-b67f-94d7d3d7af4e"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Data & Telemetry",
+      "item": [
+        {
+          "name": "Get Latest Telemetry Data",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/data?stationUuid=b51e041d-d9b1-4f93-b67f-94d7d3d7af4e&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "data"
+              ],
+              "query": [
+                {
+                  "key": "stationUuid",
+                  "value": "b51e041d-d9b1-4f93-b67f-94d7d3d7af4e"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Logs & Health",
+      "item": [
+        {
+          "name": "Root API Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                ""
+              ]
+            }
+          }
+        },
+        {
+          "name": "Frontend Logger Ingestion",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"level\": \"info\",\n  \"message\": \"User navigated to dashboard\",\n  \"data\": {\n    \"path\": \"/dashboard\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/logs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logs"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -14,9 +14,9 @@ import { secureHeaders } from 'hono/secure-headers';
 import { jwt } from 'hono/jwt';
 
 type Bindings = {
-  HYPERDRIVE: any;
   JWT_SECRET: string;
   RATE_LIMITER: any;
+  DATABASE_URL: string;
 }
 
 const app = new Hono<{ Bindings: Bindings, Variables: { db: any } }>();
@@ -42,10 +42,10 @@ app.route('/api/logs', logsRouter);
 
 // Database middleware
 app.use('*', async (c, next) => {
-  if (c.env?.HYPERDRIVE && !c.get('db')) {
+  if (c.env?.DATABASE_URL && !c.get('db')) {
     try {
       const connection = await mysql.createConnection({
-        uri: c.env.HYPERDRIVE.connectionString,
+        uri: c.env.DATABASE_URL,
         disableEval: true
       });
       const db = drizzle(connection);
@@ -61,7 +61,7 @@ app.use('*', async (c, next) => {
 // Global error handler
 app.onError((err, c) => {
   console.error('Unhandled Exception:', err);
-  
+
   // In production, do not leak error details
   return c.json({
     error: 'Internal Server Error'
@@ -93,7 +93,7 @@ app.get('/api/auth/me', jwtAuth, (c) => {
 const rateLimiter = async (c: any, next: any) => {
   const ip = c.req.header('cf-connecting-ip') || 'unknown';
   const kv = c.env?.RATE_LIMITER;
-  
+
   if (!kv) {
     console.warn('RATE_LIMITER KV namespace not bound. Falling back to allowed.');
     return next();
@@ -101,18 +101,18 @@ const rateLimiter = async (c: any, next: any) => {
 
   const key = `ratelimit:${ip}`;
   const maxRequests = 20; // 20 requests per minute
-  
+
   const currentCountStr = await kv.get(key);
   let count = currentCountStr ? parseInt(currentCountStr, 10) : 0;
-  
+
   if (count >= maxRequests) {
     return c.json({ error: 'Too Many Requests' }, 429);
   }
-  
+
   count++;
   // Set TTL to 60 seconds. Note: expirationTtl minimum is 60 seconds for KV
   await kv.put(key, count.toString(), { expirationTtl: 60 });
-  
+
   return next();
 };
 
