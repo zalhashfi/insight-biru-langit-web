@@ -4,6 +4,7 @@ import { Layout } from './components/layout/Layout';
 import { StationList } from './pages/stations/StationList';
 import { TelemetryList } from './pages/telemetry/TelemetryList';
 import { FirmwarePage } from './pages/firmware/FirmwarePage';
+import { UnregisteredDevices } from './pages/stations/UnregisteredDevices';
 
 // Inisialisasi React Query client
 const queryClient = new QueryClient();
@@ -16,6 +17,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<div className="p-4">Dashboard Home</div>} />
             <Route path="/stations" element={<div className="p-4"><StationList /></div>} />
+            <Route path="/stations/unregistered" element={<div className="p-4"><UnregisteredDevices /></div>} />
             <Route path="/telemetry" element={<div className="p-4"><TelemetryList /></div>} />
             <Route path="/firmware" element={<div className="p-4"><FirmwarePage /></div>} />
           </Route>

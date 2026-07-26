@@ -9,6 +9,7 @@ export function Layout() {
           <nav className="flex space-x-6 text-sm font-medium text-slate-600 dark:text-slate-300">
             <Link to="/" className="hover:text-black dark:hover:text-white transition-colors">Dashboard</Link>
             <Link to="/stations" className="hover:text-black dark:hover:text-white transition-colors">Alat</Link>
+            <Link to="/stations/unregistered" className="hover:text-black dark:hover:text-white transition-colors">Perlu Didaftarkan</Link>
             <Link to="/telemetry" className="hover:text-black dark:hover:text-white transition-colors">Data</Link>
             <Link to="/firmware" className="hover:text-black dark:hover:text-white transition-colors">Firmware</Link>
           </nav>
