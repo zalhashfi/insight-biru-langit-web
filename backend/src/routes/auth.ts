@@ -70,8 +70,17 @@ authRouter.post('/login', zValidator('json', loginSchema, (result, c) => {
 // Endpoint to check auth status from HttpOnly Cookie
 authRouter.get('/me', async (c) => {
   // We'll rely on the global JWT middleware to validate the cookie first
-  // But wait, the /api/auth route is not behind the JWT middleware in index.ts
-  // Let's implement manual validation here just for this endpoint, or we can move it to /api/users/me
-  // Actually, we can return the payload from the context if it's there.
   return c.json({ message: 'Use /api/users/me for this' }, 200);
+});
+
+// Endpoint to logout
+authRouter.post('/logout', (c) => {
+  setCookie(c, 'token', '', {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'Strict',
+    path: '/',
+    maxAge: 0, // Immediately expires the cookie
+  });
+  return c.json({ message: 'Logged out successfully' }, 200);
 });
