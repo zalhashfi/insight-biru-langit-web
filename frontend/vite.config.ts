@@ -25,6 +25,16 @@ export default defineConfig({
     },
   },
   build: {
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 2000,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // Memecah file node_modules menjadi chunk terpisah (vendor)
+          if (id.includes('node_modules')) {
+            return 'vendor'
+          }
+        },
+      },
+    },
   },
 })
