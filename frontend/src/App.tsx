@@ -1,28 +1,47 @@
 import { BrowserRouter, Routes, Route } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Layout } from './components/layout/Layout';
+import { AuthProvider } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/layout/ProtectedRoute';
+import { DashboardLayout } from './components/layout/DashboardLayout';
+import { LandingPage } from './pages/LandingPage';
+import { LoginPage } from './pages/auth/LoginPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { DashboardHome } from './pages/DashboardHome';
 import { StationList } from './pages/stations/StationList';
+import { UnregisteredDevices } from './pages/stations/UnregisteredDevices';
 import { TelemetryList } from './pages/telemetry/TelemetryList';
 import { FirmwarePage } from './pages/firmware/FirmwarePage';
-import { UnregisteredDevices } from './pages/stations/UnregisteredDevices';
+import { UserList } from './pages/users/UserList';
 
-// Inisialisasi React Query client
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<div className="p-4">Dashboard Home</div>} />
-            <Route path="/stations" element={<div className="p-4"><StationList /></div>} />
-            <Route path="/stations/unregistered" element={<div className="p-4"><UnregisteredDevices /></div>} />
-            <Route path="/telemetry" element={<div className="p-4"><TelemetryList /></div>} />
-            <Route path="/firmware" element={<div className="p-4"><FirmwarePage /></div>} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            
+            {/* Protected routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route element={<DashboardLayout />}>
+                <Route path="/dashboard" element={<DashboardHome />} />
+                <Route path="/stations" element={<StationList />} />
+                <Route path="/stations/unregistered" element={<UnregisteredDevices />} />
+                <Route path="/telemetry" element={<TelemetryList />} />
+                <Route path="/firmware" element={<FirmwarePage />} />
+                <Route path="/users" element={<UserList />} />
+              </Route>
+            </Route>
+            
+            {/* 404 */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
