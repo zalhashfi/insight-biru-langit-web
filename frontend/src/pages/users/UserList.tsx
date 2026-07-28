@@ -15,7 +15,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '../../components/ui/dialog';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -116,13 +115,11 @@ export function UserList() {
           <p className="text-muted-foreground mt-1">Kelola daftar pengguna dan hak akses sistem.</p>
         </div>
         
+        <Button onClick={() => setIsOpen(true)}>
+          <UserPlus className="mr-2 h-4 w-4" />
+          Tambah Pengguna
+        </Button>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <UserPlus className="mr-2 h-4 w-4" />
-              Tambah Pengguna
-            </Button>
-          </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle>Tambah Pengguna Baru</DialogTitle>

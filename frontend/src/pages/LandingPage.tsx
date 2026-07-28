@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import NetworkBackground from '@/components/three/NetworkBackground';
 
@@ -18,9 +18,11 @@ export default function LandingPage() {
         </div>
         
         <div className="pt-4">
-          <Button asChild size="lg" className="h-12 px-8 text-lg font-semibold rounded-md shadow-lg transition-transform hover:scale-105 active:scale-95">
-            <Link to="/login">Masuk</Link>
-          </Button>
+          <Link to="/login">
+            <Button size="lg" className="h-12 px-8 text-lg font-semibold rounded-md shadow-lg transition-transform hover:scale-105 active:scale-95">
+              Masuk
+            </Button>
+          </Link>
         </div>
       </main>
     </div>

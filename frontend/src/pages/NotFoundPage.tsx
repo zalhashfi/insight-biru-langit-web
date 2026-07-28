@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 
 export default function NotFoundPage() {
@@ -15,9 +15,11 @@ export default function NotFoundPage() {
           </p>
         </div>
         <div className="pt-6">
-          <Button asChild variant="default" size="lg" className="rounded-md shadow-md transition-transform hover:scale-105 active:scale-95">
-            <Link to="/">Kembali ke Beranda</Link>
-          </Button>
+          <Link to="/">
+            <Button variant="default" size="lg" className="rounded-md shadow-md transition-transform hover:scale-105 active:scale-95">
+              Kembali ke Beranda
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

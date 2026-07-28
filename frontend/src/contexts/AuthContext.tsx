@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { logger } from '../utils/logger';
+import { createContext, useContext, useState, useEffect } from 'react';
+import type { ReactNode } from 'react';
+import { logToCloudflare as logger } from '../utils/logger';
 
 interface User {
   id: number;
@@ -30,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(JSON.parse(storedUser));
       }
     } catch (error) {
-      logger.error('Failed to parse user from session storage', error);
+      logger('error', 'Failed to parse user from session storage', error);
     } finally {
       setIsLoading(false);
     }
@@ -55,9 +56,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       setUser(userData);
       sessionStorage.setItem('insight_user', JSON.stringify(userData));
-      logger.info('User logged in successfully');
+      logger('info', 'User logged in successfully');
     } catch (error) {
-      logger.error('Login error', error);
+      logger('error', 'Login error', error);
       throw error;
     }
   };
@@ -69,11 +70,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         credentials: 'include',
       });
     } catch (error) {
-      logger.error('Logout API error', error);
+      logger('error', 'Logout API error', error);
     } finally {
       setUser(null);
       sessionStorage.removeItem('insight_user');
-      logger.info('User logged out');
+      logger('info', 'User logged out');
     }
   };
 
